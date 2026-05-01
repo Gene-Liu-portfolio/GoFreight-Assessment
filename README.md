@@ -259,6 +259,25 @@ The retry layer also propagates two callbacks:
 
 ## 6. Break-It Findings and Hardening Decisions
 
+The original baseline flow was intentionally simple:
+
+```text
+User question
+  -> SQL generator
+  -> SQLExecutor
+  -> table / JSON output
+```
+
+That baseline was useful because it proved the end-to-end path first: natural language could be converted into SQL, executed against Chinook, and returned to the user. It also made the main risks easier to see. The model could generate plausible SQL for requests that were out-of-scope, ambiguous, contradictory, or based on data that did not exist in the database.
+
+After break-it testing, I added three hardening layers:
+
+1. **Pre-generation checks** to reject out-of-scope requests, flag contradictory constraints, and normalize non-English queries before SQL generation.
+2. **Prompt grounding** to constrain the SQL generator with the real schema, sample rows, database-specific rules, and known missing fields.
+3. **Post-generation validation** to reject unsafe or invalid SQL, retry with concrete validation feedback, and execute only through a read-only database path.
+
+The hardened flow was therefore a response to observed failures, not a layer of generic complexity added upfront.
+
 I tested the baseline with 27 adversarial cases across nine categories:
 
 | Category | What it tested |
