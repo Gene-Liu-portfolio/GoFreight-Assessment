@@ -1,0 +1,99 @@
+{
+  "_meta": {
+    "purpose": "Holdout set with novel phrasings to detect prompt overfitting. Constructed independently of cases.json — no shared question wordings, numeric thresholds, or entity names. Same category coverage so per-category accuracy on holdout vs dev can be compared directly.",
+    "ground_truth_verified_against": "src/db/chinook.db",
+    "verified_on": "2026-05-01"
+  },
+  "test_cases": [
+    {
+      "id": "holdout_filter_01",
+      "category": "tricky_filtering",
+      "natural_language": "Which playlists currently contain zero tracks?",
+      "ground_truth_sql": "SELECT p.PlaylistId, p.Name FROM Playlist p LEFT JOIN PlaylistTrack pt ON p.PlaylistId = pt.PlaylistId WHERE pt.PlaylistId IS NULL ORDER BY p.PlaylistId;",
+      "difficulty": "medium",
+      "adversarial_note": "Anti-join via LEFT JOIN + IS NULL. Models often write `NOT EXISTS` (also valid) or worse, miss the empty case entirely.",
+      "expected_row_count": 4
+    },
+    {
+      "id": "holdout_filter_02",
+      "category": "tricky_filtering",
+      "natural_language": "Show every invoice issued in December 2023",
+      "ground_truth_sql": "SELECT InvoiceId, CustomerId, InvoiceDate, Total FROM Invoice WHERE InvoiceDate >= '2023-12-01' AND InvoiceDate < '2024-01-01' ORDER BY InvoiceDate;",
+      "difficulty": "medium",
+      "adversarial_note": "Single-month date range — models sometimes use `LIKE '2023-12%'` (works) or misuse `BETWEEN` with inclusive upper bound that crosses into 2024-01.",
+      "expected_row_count": 7
+    },
+    {
+      "id": "holdout_join_01",
+      "category": "multi_hop_join",
+      "natural_language": "What media types appear most often in purchases by customers based in Brazil?",
+      "ground_truth_sql": "SELECT mt.Name AS media_type, COUNT(*) AS purchase_count FROM Customer c JOIN Invoice i ON c.CustomerId = i.CustomerId JOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId JOIN Track t ON il.TrackId = t.TrackId JOIN MediaType mt ON t.MediaTypeId = mt.MediaTypeId WHERE c.Country = 'Brazil' GROUP BY mt.MediaTypeId, mt.Name ORDER BY purchase_count DESC;",
+      "difficulty": "hard",
+      "adversarial_note": "5-table JOIN: Customer→Invoice→InvoiceLine→Track→MediaType. Country filter on Customer not on Invoice.BillingCountry — both work numerically but use different paths.",
+      "expected_row_count": 3
+    },
+    {
+      "id": "holdout_join_02",
+      "category": "multi_hop_join",
+      "natural_language": "Which employees were hired after their direct manager?",
+      "ground_truth_sql": "SELECT e.FirstName, e.LastName, e.HireDate AS employee_hired, m.FirstName AS manager_first, m.HireDate AS manager_hired FROM Employee e JOIN Employee m ON e.ReportsTo = m.EmployeeId WHERE e.HireDate > m.HireDate ORDER BY e.LastName;",
+      "difficulty": "hard",
+      "adversarial_note": "Self-join with date comparison across the join. Models that treat the table as two unrelated copies often forget to compare e.HireDate to m.HireDate properly.",
+      "expected_row_count": 5
+    },
+    {
+      "id": "holdout_agg_01",
+      "category": "advanced_aggregation",
+      "natural_language": "For each genre, find the longest track in that genre",
+      "ground_truth_sql": "SELECT g.Name AS genre, t.Name AS longest_track, t.Milliseconds FROM Genre g JOIN Track t ON g.GenreId = t.GenreId WHERE t.Milliseconds = (SELECT MAX(t2.Milliseconds) FROM Track t2 WHERE t2.GenreId = g.GenreId) ORDER BY g.Name;",
+      "difficulty": "hard",
+      "adversarial_note": "Per-group maximum — correlated subquery or window function (ROW_NUMBER OVER PARTITION BY). Naive `MAX(Milliseconds)` with no per-group correlation gives global max only.",
+      "expected_row_count": 25
+    },
+    {
+      "id": "holdout_advanced_01",
+      "category": "advanced_sql",
+      "natural_language": "For each customer who has made multiple purchases, show their first invoice date, last invoice date, and how many days passed between them",
+      "ground_truth_sql": "SELECT c.FirstName, c.LastName, MIN(i.InvoiceDate) AS first_purchase, MAX(i.InvoiceDate) AS last_purchase, CAST(JULIANDAY(MAX(i.InvoiceDate)) - JULIANDAY(MIN(i.InvoiceDate)) AS INTEGER) AS days_between FROM Customer c JOIN Invoice i ON c.CustomerId = i.CustomerId GROUP BY c.CustomerId HAVING COUNT(i.InvoiceId) > 1 ORDER BY days_between DESC LIMIT 15;",
+      "difficulty": "hard",
+      "adversarial_note": "MIN/MAX on dates + HAVING on count + JULIANDAY date arithmetic (SQLite-specific). Models trained on PostgreSQL often emit `AGE()` or `DATE_PART` here.",
+      "expected_row_count": 15
+    },
+    {
+      "id": "holdout_advanced_02",
+      "category": "advanced_sql",
+      "natural_language": "List employees who have never been assigned as a support representative for any customer",
+      "ground_truth_sql": "SELECT FirstName, LastName, Title FROM Employee WHERE EmployeeId NOT IN (SELECT DISTINCT SupportRepId FROM Customer WHERE SupportRepId IS NOT NULL) ORDER BY LastName;",
+      "difficulty": "hard",
+      "adversarial_note": "NOT IN with NULL filter inside the subquery — without `IS NOT NULL`, `NOT IN` returns empty set if any NULL is present. Classic SQL trap.",
+      "expected_row_count": 5
+    },
+    {
+      "id": "holdout_messy_01",
+      "category": "messy_adversarial",
+      "natural_language": "ttl sals revunee per emplyee, sortd by hihest",
+      "ground_truth_sql": "SELECT e.FirstName, e.LastName, ROUND(SUM(i.Total), 2) AS total_revenue FROM Employee e JOIN Customer c ON e.EmployeeId = c.SupportRepId JOIN Invoice i ON c.CustomerId = i.CustomerId GROUP BY e.EmployeeId ORDER BY total_revenue DESC;",
+      "difficulty": "hard",
+      "adversarial_note": "Heavy misspelling (every word) + 3-table JOIN through SupportRepId. Tests pure typo recovery.",
+      "expected_row_count": 3
+    },
+    {
+      "id": "holdout_non_eng_01",
+      "category": "non_english_complex",
+      "natural_language": "列出每個城市的客戶數量，由多到少排序",
+      "ground_truth_sql": "SELECT City, COUNT(*) AS customer_count FROM Customer GROUP BY City ORDER BY customer_count DESC;",
+      "difficulty": "medium",
+      "adversarial_note": "Chinese, simple GROUP BY/ORDER BY. Distinct phrasing from cases.json non-English questions.",
+      "expected_row_count": 53
+    },
+    {
+      "id": "holdout_non_eng_02",
+      "category": "non_english_complex",
+      "natural_language": "¿Cuál es la duración promedio de las canciones por género en minutos?",
+      "ground_truth_sql": "SELECT g.Name AS genre, ROUND(AVG(t.Milliseconds) / 60000.0, 2) AS avg_minutes FROM Genre g JOIN Track t ON g.GenreId = t.GenreId GROUP BY g.GenreId, g.Name ORDER BY avg_minutes DESC;",
+      "difficulty": "hard",
+      "adversarial_note": "Spanish — a fifth language not represented in cases.json (which covers English, Chinese, Japanese, German, French). Tests generalization to unseen language.",
+      "expected_row_count": 25
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+.pytest_cache/
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# OS-generated files
+.DS_Store
+
+# Secrets
+.env
+
+# Personal / internal review notes
+PROJECT_INTERVIEW_GUIDE.md
+docs/01_baseline_execution.md
+docs/02_break_it.md
+docs/03_harden_and_fix.md
+docs/04_explain.md
+docs/05_model_selection.md
+docs/06_eval_report.md
+docs/07_executive_review.md
+docs/08_demo_guide.md
+
+# Eval results — keep committed for reproducibility verification
+# eval/results/*.json

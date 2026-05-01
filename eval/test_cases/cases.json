@@ -1,0 +1,274 @@
+{
+  "test_cases": [
+    {
+      "id": "filter_01",
+      "category": "tricky_filtering",
+      "natural_language": "Find all tracks that have no composer listed",
+      "ground_truth_sql": "SELECT t.Name AS track_name FROM Track t WHERE t.Composer IS NULL ORDER BY t.Name LIMIT 20;",
+      "difficulty": "medium",
+      "adversarial_note": "Tests NULL handling — models often generate WHERE Composer = '' instead of IS NULL",
+      "expected_row_count": 20
+    },
+    {
+      "id": "filter_02",
+      "category": "tricky_filtering",
+      "natural_language": "Which customers do not have a company?",
+      "ground_truth_sql": "SELECT c.FirstName, c.LastName, c.Email FROM Customer c WHERE c.Company IS NULL ORDER BY c.LastName;",
+      "difficulty": "medium",
+      "adversarial_note": "Another NULL test — 'do not have' should map to IS NULL, not = '' or != something",
+      "expected_row_count": 49
+    },
+    {
+      "id": "filter_03",
+      "category": "tricky_filtering",
+      "natural_language": "List all invoices from the first quarter of 2025",
+      "ground_truth_sql": "SELECT InvoiceId, CustomerId, InvoiceDate, Total FROM Invoice WHERE InvoiceDate >= '2025-01-01' AND InvoiceDate < '2025-04-01' ORDER BY InvoiceDate;",
+      "difficulty": "medium",
+      "adversarial_note": "Temporal reasoning — model must correctly interpret 'first quarter' as Jan-Mar, handle date boundary",
+      "expected_row_count": 19
+    },
+    {
+      "id": "filter_04",
+      "category": "tricky_filtering",
+      "natural_language": "Show tracks that are longer than 10 minutes and cost more than $0.99",
+      "ground_truth_sql": "SELECT t.Name AS track_name, ROUND(t.Milliseconds / 60000.0, 1) AS duration_minutes, t.UnitPrice FROM Track t WHERE t.Milliseconds > 600000 AND t.UnitPrice > 0.99 ORDER BY t.Milliseconds DESC LIMIT 20;",
+      "difficulty": "medium",
+      "adversarial_note": "Unit conversion trap — must convert 10 min to 600000 ms, and use > not >= for price",
+      "expected_row_count": 20
+    },
+    {
+      "id": "filter_05",
+      "category": "tricky_filtering",
+      "natural_language": "Find customers whose email is from a gmail address",
+      "ground_truth_sql": "SELECT FirstName, LastName, Email FROM Customer WHERE Email LIKE '%gmail.com' ORDER BY LastName;",
+      "difficulty": "medium",
+      "adversarial_note": "String pattern matching — model must use LIKE with wildcard, not exact match",
+      "expected_row_count": 8
+    },
+    {
+      "id": "join_01",
+      "category": "multi_hop_join",
+      "natural_language": "How much revenue has each artist generated from sales?",
+      "ground_truth_sql": "SELECT ar.Name AS artist, ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_revenue FROM Artist ar JOIN Album a ON ar.ArtistId = a.ArtistId JOIN Track t ON a.AlbumId = t.AlbumId JOIN InvoiceLine il ON t.TrackId = il.TrackId GROUP BY ar.ArtistId, ar.Name ORDER BY total_revenue DESC LIMIT 15;",
+      "difficulty": "hard",
+      "adversarial_note": "4-table JOIN chain: Artist->Album->Track->InvoiceLine. Models often miss intermediate tables.",
+      "expected_row_count": 15
+    },
+    {
+      "id": "join_02",
+      "category": "multi_hop_join",
+      "natural_language": "Show the management hierarchy: each employee and who they report to",
+      "ground_truth_sql": "SELECT e.FirstName AS emp_first, e.LastName AS emp_last, e.Title AS emp_title, m.FirstName AS mgr_first, m.LastName AS mgr_last FROM Employee e LEFT JOIN Employee m ON e.ReportsTo = m.EmployeeId ORDER BY e.EmployeeId;",
+      "difficulty": "hard",
+      "adversarial_note": "Self-join on Employee table + LEFT JOIN to include top-level (ReportsTo IS NULL)",
+      "expected_row_count": 8
+    },
+    {
+      "id": "join_03",
+      "category": "multi_hop_join",
+      "natural_language": "Which playlists contain tracks by Led Zeppelin?",
+      "ground_truth_sql": "SELECT DISTINCT p.Name AS playlist_name FROM Playlist p JOIN PlaylistTrack pt ON p.PlaylistId = pt.PlaylistId JOIN Track t ON pt.TrackId = t.TrackId JOIN Album a ON t.AlbumId = a.AlbumId JOIN Artist ar ON a.ArtistId = ar.ArtistId WHERE ar.Name = 'Led Zeppelin' ORDER BY p.Name;",
+      "difficulty": "hard",
+      "adversarial_note": "5-table JOIN chain: Playlist->PlaylistTrack->Track->Album->Artist. Also needs DISTINCT.",
+      "expected_row_count": 2
+    },
+    {
+      "id": "join_04",
+      "category": "multi_hop_join",
+      "natural_language": "List each customer with the total number of tracks they have purchased",
+      "ground_truth_sql": "SELECT c.FirstName, c.LastName, COUNT(il.InvoiceLineId) AS tracks_purchased FROM Customer c JOIN Invoice i ON c.CustomerId = i.CustomerId JOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId GROUP BY c.CustomerId ORDER BY tracks_purchased DESC LIMIT 15;",
+      "difficulty": "hard",
+      "adversarial_note": "3-table JOIN: Customer->Invoice->InvoiceLine. Must count InvoiceLine, not Invoice.",
+      "expected_row_count": 15
+    },
+    {
+      "id": "join_05",
+      "category": "multi_hop_join",
+      "natural_language": "Which customers are handled by employees who were hired before 2003?",
+      "ground_truth_sql": "SELECT c.FirstName, c.LastName, c.Country FROM Customer c JOIN Employee e ON c.SupportRepId = e.EmployeeId WHERE e.HireDate < '2003-01-01' ORDER BY c.LastName LIMIT 20;",
+      "difficulty": "hard",
+      "adversarial_note": "Cross-entity filtering — filter on Employee attribute but return Customer rows",
+      "expected_row_count": 20
+    },
+    {
+      "id": "agg_01",
+      "category": "advanced_aggregation",
+      "natural_language": "Which genres have generated more revenue than the average genre?",
+      "ground_truth_sql": "SELECT g.Name AS genre, ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS revenue FROM Genre g JOIN Track t ON g.GenreId = t.GenreId JOIN InvoiceLine il ON t.TrackId = il.TrackId GROUP BY g.GenreId, g.Name HAVING SUM(il.UnitPrice * il.Quantity) > (SELECT AVG(genre_rev) FROM (SELECT SUM(il2.UnitPrice * il2.Quantity) AS genre_rev FROM Genre g2 JOIN Track t2 ON g2.GenreId = t2.GenreId JOIN InvoiceLine il2 ON t2.TrackId = il2.TrackId GROUP BY g2.GenreId)) ORDER BY revenue DESC;",
+      "difficulty": "hard",
+      "adversarial_note": "HAVING + nested subquery computing average of aggregates. Classic adversarial pattern.",
+      "expected_row_count": 4
+    },
+    {
+      "id": "agg_02",
+      "category": "advanced_aggregation",
+      "natural_language": "For each support representative, how many customers do they handle and what is the total revenue from those customers?",
+      "ground_truth_sql": "SELECT e.FirstName, e.LastName, COUNT(DISTINCT c.CustomerId) AS customer_count, ROUND(SUM(i.Total), 2) AS total_revenue FROM Employee e JOIN Customer c ON e.EmployeeId = c.SupportRepId JOIN Invoice i ON c.CustomerId = i.CustomerId GROUP BY e.EmployeeId ORDER BY total_revenue DESC;",
+      "difficulty": "hard",
+      "adversarial_note": "Requires COUNT(DISTINCT) to avoid inflating customer count due to multiple invoices per customer",
+      "expected_row_count": 3
+    },
+    {
+      "id": "agg_03",
+      "category": "advanced_aggregation",
+      "natural_language": "What percentage of total revenue does each country contribute?",
+      "ground_truth_sql": "SELECT BillingCountry AS country, ROUND(SUM(Total), 2) AS country_revenue, ROUND(SUM(Total) * 100.0 / (SELECT SUM(Total) FROM Invoice), 2) AS revenue_percentage FROM Invoice GROUP BY BillingCountry ORDER BY country_revenue DESC;",
+      "difficulty": "hard",
+      "adversarial_note": "Percentage calculation requires a scalar subquery for the total. Common failure point.",
+      "expected_row_count": 24
+    },
+    {
+      "id": "agg_04",
+      "category": "advanced_aggregation",
+      "natural_language": "How many albums does each artist have, but only show artists with more than 2 albums?",
+      "ground_truth_sql": "SELECT ar.Name AS artist, COUNT(a.AlbumId) AS album_count FROM Artist ar JOIN Album a ON ar.ArtistId = a.ArtistId GROUP BY ar.ArtistId, ar.Name HAVING COUNT(a.AlbumId) > 2 ORDER BY album_count DESC;",
+      "difficulty": "medium",
+      "adversarial_note": "HAVING clause filtering — models sometimes put the condition in WHERE instead of HAVING",
+      "expected_row_count": 26
+    },
+    {
+      "id": "agg_05",
+      "category": "advanced_aggregation",
+      "natural_language": "What is the average number of tracks per album?",
+      "ground_truth_sql": "SELECT ROUND(AVG(track_count), 2) AS avg_tracks_per_album FROM (SELECT AlbumId, COUNT(*) AS track_count FROM Track GROUP BY AlbumId);",
+      "difficulty": "hard",
+      "adversarial_note": "Average of aggregates — requires a subquery. Models often do AVG(COUNT(*)) which is invalid SQL.",
+      "expected_row_count": 1
+    },
+    {
+      "id": "advanced_01",
+      "category": "advanced_sql",
+      "natural_language": "Which customers have spent more than the average customer?",
+      "ground_truth_sql": "SELECT c.FirstName, c.LastName, ROUND(SUM(i.Total), 2) AS total_spent FROM Customer c JOIN Invoice i ON c.CustomerId = i.CustomerId GROUP BY c.CustomerId HAVING SUM(i.Total) > (SELECT AVG(customer_total) FROM (SELECT SUM(Total) AS customer_total FROM Invoice GROUP BY CustomerId)) ORDER BY total_spent DESC;",
+      "difficulty": "hard",
+      "adversarial_note": "Average of per-customer totals, not average of individual invoices. Very common mistake.",
+      "expected_row_count": 22
+    },
+    {
+      "id": "advanced_02",
+      "category": "advanced_sql",
+      "natural_language": "Rank the top 3 selling genres in each country by number of tracks sold",
+      "ground_truth_sql": "SELECT country, genre, tracks_sold, genre_rank FROM (SELECT i.BillingCountry AS country, g.Name AS genre, COUNT(il.InvoiceLineId) AS tracks_sold, ROW_NUMBER() OVER (PARTITION BY i.BillingCountry ORDER BY COUNT(il.InvoiceLineId) DESC) AS genre_rank FROM Invoice i JOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId JOIN Track t ON il.TrackId = t.TrackId JOIN Genre g ON t.GenreId = g.GenreId GROUP BY i.BillingCountry, g.GenreId, g.Name) WHERE genre_rank <= 3 ORDER BY country, genre_rank;",
+      "difficulty": "hard",
+      "adversarial_note": "Window function ROW_NUMBER + PARTITION BY + multi-table JOIN. Maximum difficulty.",
+      "expected_row_count": 72
+    },
+    {
+      "id": "advanced_03",
+      "category": "advanced_sql",
+      "natural_language": "Which genres have never been sold to any customer?",
+      "ground_truth_sql": "SELECT g.Name AS genre FROM Genre g WHERE g.GenreId NOT IN (SELECT DISTINCT t.GenreId FROM Track t JOIN InvoiceLine il ON t.TrackId = il.TrackId WHERE t.GenreId IS NOT NULL) ORDER BY g.Name;",
+      "difficulty": "hard",
+      "adversarial_note": "NOT IN with subquery + NULL safety. Alternative: NOT EXISTS or EXCEPT.",
+      "expected_row_count": 1
+    },
+    {
+      "id": "advanced_04",
+      "category": "advanced_sql",
+      "natural_language": "Find customers who have made purchases in every year that has invoice data",
+      "ground_truth_sql": "SELECT c.FirstName, c.LastName FROM Customer c JOIN Invoice i ON c.CustomerId = i.CustomerId GROUP BY c.CustomerId HAVING COUNT(DISTINCT STRFTIME('%Y', i.InvoiceDate)) = (SELECT COUNT(DISTINCT STRFTIME('%Y', InvoiceDate)) FROM Invoice) ORDER BY c.LastName;",
+      "difficulty": "hard",
+      "adversarial_note": "Universal quantification via COUNT(DISTINCT) = total. Tests relational division pattern.",
+      "expected_row_count": 9
+    },
+    {
+      "id": "advanced_05",
+      "category": "advanced_sql",
+      "natural_language": "Show each customer's most recent invoice date and the total amount of that invoice",
+      "ground_truth_sql": "SELECT c.FirstName, c.LastName, i.InvoiceDate AS most_recent_date, i.Total AS invoice_total FROM Customer c JOIN Invoice i ON c.CustomerId = i.CustomerId WHERE i.InvoiceDate = (SELECT MAX(i2.InvoiceDate) FROM Invoice i2 WHERE i2.CustomerId = c.CustomerId) ORDER BY most_recent_date DESC LIMIT 15;",
+      "difficulty": "hard",
+      "adversarial_note": "Correlated subquery — must match each customer to THEIR latest invoice, not global max.",
+      "expected_row_count": 15
+    },
+    {
+      "id": "messy_01",
+      "category": "messy_adversarial",
+      "natural_language": "shwo me the top sellin artsts and how much there albums made",
+      "ground_truth_sql": "SELECT ar.Name AS artist, COUNT(DISTINCT a.AlbumId) AS album_count, ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_revenue FROM Artist ar JOIN Album a ON ar.ArtistId = a.ArtistId JOIN Track t ON a.AlbumId = t.AlbumId JOIN InvoiceLine il ON t.TrackId = il.TrackId GROUP BY ar.ArtistId, ar.Name ORDER BY total_revenue DESC LIMIT 10;",
+      "difficulty": "hard",
+      "adversarial_note": "Heavy misspelling + requires 4-table JOIN + COUNT(DISTINCT) for albums",
+      "expected_row_count": 10
+    },
+    {
+      "id": "messy_02",
+      "category": "messy_adversarial",
+      "natural_language": "trakcs that nobdy has purchsed",
+      "ground_truth_sql": "SELECT t.Name AS track_name FROM Track t WHERE t.TrackId NOT IN (SELECT DISTINCT TrackId FROM InvoiceLine) ORDER BY t.Name LIMIT 20;",
+      "difficulty": "hard",
+      "adversarial_note": "Heavy misspelling + negation (NOT IN subquery). Returns first 20 of 1519 unpurchased tracks.",
+      "expected_row_count": 20
+    },
+    {
+      "id": "messy_03",
+      "category": "messy_adversarial",
+      "natural_language": "gimme all rock n metal songs with there lenghts in minuts",
+      "ground_truth_sql": "SELECT t.Name AS track_name, g.Name AS genre, ROUND(t.Milliseconds / 60000.0, 2) AS duration_minutes FROM Track t JOIN Genre g ON t.GenreId = g.GenreId WHERE g.Name IN ('Rock', 'Metal') ORDER BY g.Name, t.Name LIMIT 20;",
+      "difficulty": "hard",
+      "adversarial_note": "Informal language + multi-value filter + unit conversion (ms->min)",
+      "expected_row_count": 20
+    },
+    {
+      "id": "messy_04",
+      "category": "messy_adversarial",
+      "natural_language": "employes who dont manege anyone",
+      "ground_truth_sql": "SELECT e.FirstName, e.LastName, e.Title FROM Employee e WHERE e.EmployeeId NOT IN (SELECT DISTINCT ReportsTo FROM Employee WHERE ReportsTo IS NOT NULL) ORDER BY e.LastName;",
+      "difficulty": "hard",
+      "adversarial_note": "Misspelling + self-referential NOT IN on Employee.ReportsTo. Must handle NULL in ReportsTo.",
+      "expected_row_count": 5
+    },
+    {
+      "id": "messy_05",
+      "category": "messy_adversarial",
+      "natural_language": "avg invioce amnt per counrty sortd high to low",
+      "ground_truth_sql": "SELECT BillingCountry AS country, ROUND(AVG(Total), 2) AS avg_invoice FROM Invoice GROUP BY BillingCountry ORDER BY avg_invoice DESC;",
+      "difficulty": "medium",
+      "adversarial_note": "Every word is misspelled. Tests pure NLP recovery ability.",
+      "expected_row_count": 24
+    },
+    {
+      "id": "non_eng_01",
+      "category": "non_english_complex",
+      "natural_language": "哪些藝人的專輯數量超過三張？列出藝人名稱和專輯數",
+      "ground_truth_sql": "SELECT ar.Name AS artist, COUNT(a.AlbumId) AS album_count FROM Artist ar JOIN Album a ON ar.ArtistId = a.ArtistId GROUP BY ar.ArtistId, ar.Name HAVING COUNT(a.AlbumId) > 3 ORDER BY album_count DESC;",
+      "difficulty": "hard",
+      "adversarial_note": "Chinese + HAVING clause + JOIN. Must translate '超過三張' to '> 3' not '>= 3'.",
+      "expected_row_count": 12
+    },
+    {
+      "id": "non_eng_02",
+      "category": "non_english_complex",
+      "natural_language": "売上金額が最も高い上位5ジャンルを教えてください",
+      "ground_truth_sql": "SELECT g.Name AS genre, ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_sales FROM Genre g JOIN Track t ON g.GenreId = t.GenreId JOIN InvoiceLine il ON t.TrackId = il.TrackId GROUP BY g.GenreId, g.Name ORDER BY total_sales DESC LIMIT 5;",
+      "difficulty": "hard",
+      "adversarial_note": "Japanese + multi-table aggregation. 'Top 5 genres by sales amount'.",
+      "expected_row_count": 5
+    },
+    {
+      "id": "non_eng_03",
+      "category": "non_english_complex",
+      "natural_language": "Welche Kunden haben insgesamt mehr als 45 Dollar ausgegeben?",
+      "ground_truth_sql": "SELECT c.FirstName, c.LastName, ROUND(SUM(i.Total), 2) AS total_spent FROM Customer c JOIN Invoice i ON c.CustomerId = i.CustomerId GROUP BY c.CustomerId HAVING SUM(i.Total) > 45 ORDER BY total_spent DESC;",
+      "difficulty": "hard",
+      "adversarial_note": "German + HAVING on aggregate + JOIN. 'mehr als 45 Dollar ausgegeben' = 'spent more than $45'.",
+      "expected_row_count": 5
+    },
+    {
+      "id": "non_eng_04",
+      "category": "non_english_complex",
+      "natural_language": "找出每位員工負責的客戶中，消費總額最高的客戶是誰",
+      "ground_truth_sql": "SELECT e.FirstName AS emp_first, e.LastName AS emp_last, c.FirstName AS cust_first, c.LastName AS cust_last, ROUND(cs.total_spent, 2) AS total_spent FROM Employee e JOIN Customer c ON e.EmployeeId = c.SupportRepId JOIN (SELECT CustomerId, SUM(Total) AS total_spent FROM Invoice GROUP BY CustomerId) cs ON c.CustomerId = cs.CustomerId WHERE cs.total_spent = (SELECT MAX(cs2.total_spent) FROM Customer c2 JOIN (SELECT CustomerId, SUM(Total) AS total_spent FROM Invoice GROUP BY CustomerId) cs2 ON c2.CustomerId = cs2.CustomerId WHERE c2.SupportRepId = e.EmployeeId) ORDER BY e.LastName;",
+      "difficulty": "hard",
+      "adversarial_note": "Chinese + correlated subquery + per-group maximum. Among the hardest SQL patterns.",
+      "expected_row_count": 4
+    },
+    {
+      "id": "non_eng_05",
+      "category": "non_english_complex",
+      "natural_language": "Quels sont les 3 genres les plus vendus en France ?",
+      "ground_truth_sql": "SELECT g.Name AS genre, ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_sales FROM Genre g JOIN Track t ON g.GenreId = t.GenreId JOIN InvoiceLine il ON t.TrackId = il.TrackId JOIN Invoice i ON il.InvoiceId = i.InvoiceId WHERE i.BillingCountry = 'France' GROUP BY g.GenreId, g.Name ORDER BY total_sales DESC LIMIT 3;",
+      "difficulty": "hard",
+      "adversarial_note": "French + 4-table JOIN + country filter + LIMIT. 'vendus en France' must filter by BillingCountry.",
+      "expected_row_count": 3
+    }
+  ]
+}

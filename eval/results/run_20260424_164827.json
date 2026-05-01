@@ -1,0 +1,1595 @@
+{
+  "claude-sonnet-4.6": {
+    "accuracy": 0.7,
+    "correct": 21,
+    "total": 30,
+    "threshold_pass": false,
+    "category_breakdown": {
+      "tricky_filtering": {
+        "accuracy": 0.6,
+        "correct": 3,
+        "total": 5
+      },
+      "multi_hop_join": {
+        "accuracy": 0.6,
+        "correct": 3,
+        "total": 5
+      },
+      "advanced_aggregation": {
+        "accuracy": 1.0,
+        "correct": 5,
+        "total": 5
+      },
+      "advanced_sql": {
+        "accuracy": 0.6,
+        "correct": 3,
+        "total": 5
+      },
+      "messy_adversarial": {
+        "accuracy": 0.6,
+        "correct": 3,
+        "total": 5
+      },
+      "non_english_complex": {
+        "accuracy": 0.8,
+        "correct": 4,
+        "total": 5
+      }
+    },
+    "avg_latency": 7.911779777208964,
+    "results": [
+      {
+        "case_id": "filter_01",
+        "category": "tricky_filtering",
+        "difficulty": "medium",
+        "natural_language": "Find all tracks that have no composer listed",
+        "ground_truth_sql": "SELECT t.Name AS track_name, a.Title AS album FROM Track t JOIN Album a ON t.AlbumId = a.AlbumId WHERE t.Composer IS NULL ORDER BY t.Name LIMIT 20;",
+        "predicted_sql": "SELECT t.TrackId, t.Name AS track_name, a.Title AS album, ar.Name AS artist\nFROM Track t\nJOIN Album a ON t.AlbumId = a.AlbumId\nJOIN Artist ar ON a.ArtistId = ar.ArtistId\nWHERE t.Composer IS NULL\nORDER BY ar.Name, a.Title, t.Name\nLIMIT 20",
+        "raw_output": "SELECT t.TrackId, t.Name AS track_name, a.Title AS album, ar.Name AS artist\nFROM Track t\nJOIN Album a ON t.AlbumId = a.AlbumId\nJOIN Artist ar ON a.ArtistId = ar.ArtistId\nWHERE t.Composer IS NULL\nORDER BY ar.Name, a.Title, t.Name\nLIMIT 20;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 2.174292802810669
+      },
+      {
+        "case_id": "filter_02",
+        "category": "tricky_filtering",
+        "difficulty": "medium",
+        "natural_language": "Which customers do not have a company?",
+        "ground_truth_sql": "SELECT FirstName, LastName, Email, Country FROM Customer WHERE Company IS NULL ORDER BY LastName;",
+        "predicted_sql": "SELECT CustomerId, FirstName, LastName, Email, Country\nFROM Customer\nWHERE Company IS NULL\nORDER BY LastName, FirstName",
+        "raw_output": "SELECT CustomerId, FirstName, LastName, Email, Country\nFROM Customer\nWHERE Company IS NULL\nORDER BY LastName, FirstName;",
+        "score": 1.0,
+        "reason": "Subset match (model returned extra columns)",
+        "latency": 2.0194921493530273
+      },
+      {
+        "case_id": "filter_03",
+        "category": "tricky_filtering",
+        "difficulty": "medium",
+        "natural_language": "List all invoices from the first quarter of 2025",
+        "ground_truth_sql": "SELECT InvoiceId, CustomerId, InvoiceDate, Total FROM Invoice WHERE InvoiceDate >= '2025-01-01' AND InvoiceDate < '2025-04-01' ORDER BY InvoiceDate;",
+        "predicted_sql": "SELECT \n    i.InvoiceId,\n    i.InvoiceDate,\n    i.CustomerId,\n    c.FirstName || ' ' || c.LastName AS customer_name,\n    i.BillingCity,\n    i.BillingCountry,\n    i.Total\nFROM Invoice i\nJOIN Customer c ON i.CustomerId = c.CustomerId\nWHERE i.InvoiceDate >= '2025-01-01'\n  AND i.InvoiceDate < '2025-04-01'\nORDER BY i.InvoiceDate ASC",
+        "raw_output": "SELECT \n    i.InvoiceId,\n    i.InvoiceDate,\n    i.CustomerId,\n    c.FirstName || ' ' || c.LastName AS customer_name,\n    i.BillingCity,\n    i.BillingCountry,\n    i.Total\nFROM Invoice i\nJOIN Customer c ON i.CustomerId = c.CustomerId\nWHERE i.InvoiceDate >= '2025-01-01'\n  AND i.InvoiceDate < '2025-04-01'\nORDER BY i.InvoiceDate ASC;",
+        "score": 1.0,
+        "reason": "Subset match (model returned extra columns)",
+        "latency": 2.717215061187744
+      },
+      {
+        "case_id": "filter_04",
+        "category": "tricky_filtering",
+        "difficulty": "medium",
+        "natural_language": "Show tracks that are longer than 10 minutes and cost more than $0.99",
+        "ground_truth_sql": "SELECT t.Name AS track_name, ar.Name AS artist, ROUND(t.Milliseconds / 60000.0, 2) AS duration_minutes, t.UnitPrice FROM Track t JOIN Album a ON t.AlbumId = a.AlbumId JOIN Artist ar ON a.ArtistId = ar.ArtistId WHERE t.Milliseconds > 600000 AND t.UnitPrice > 0.99 ORDER BY t.Milliseconds DESC;",
+        "predicted_sql": "SELECT t.Name AS track_name,\n       t.Milliseconds / 60000.0 AS duration_minutes,\n       t.UnitPrice AS price,\n       a.Title AS album,\n       ar.Name AS artist\nFROM Track t\nJOIN Album a ON t.AlbumId = a.AlbumId\nJOIN Artist ar ON a.ArtistId = ar.ArtistId\nWHERE t.Milliseconds > 600000\n  AND t.UnitPrice > 0.99\nORDER BY t.Milliseconds DESC\nLIMIT 20",
+        "raw_output": "SELECT t.Name AS track_name,\n       t.Milliseconds / 60000.0 AS duration_minutes,\n       t.UnitPrice AS price,\n       a.Title AS album,\n       ar.Name AS artist\nFROM Track t\nJOIN Album a ON t.AlbumId = a.AlbumId\nJOIN Artist ar ON a.ArtistId = ar.ArtistId\nWHERE t.Milliseconds > 600000\n  AND t.UnitPrice > 0.99\nORDER BY t.Milliseconds DESC\nLIMIT 20;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 3.107534885406494
+      },
+      {
+        "case_id": "filter_05",
+        "category": "tricky_filtering",
+        "difficulty": "medium",
+        "natural_language": "Find customers whose email is from a gmail address",
+        "ground_truth_sql": "SELECT FirstName, LastName, Email FROM Customer WHERE Email LIKE '%gmail.com' ORDER BY LastName;",
+        "predicted_sql": "SELECT CustomerId, FirstName, LastName, Email\nFROM Customer\nWHERE Email LIKE '%@gmail.com'\nORDER BY LastName, FirstName",
+        "raw_output": "SELECT CustomerId, FirstName, LastName, Email\nFROM Customer\nWHERE Email LIKE '%@gmail.com'\nORDER BY LastName, FirstName;",
+        "score": 1.0,
+        "reason": "Subset match (model returned extra columns)",
+        "latency": 1.9843988418579102
+      },
+      {
+        "case_id": "join_01",
+        "category": "multi_hop_join",
+        "difficulty": "hard",
+        "natural_language": "How much revenue has each artist generated from sales?",
+        "ground_truth_sql": "SELECT ar.Name AS artist, ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_revenue FROM Artist ar JOIN Album a ON ar.ArtistId = a.ArtistId JOIN Track t ON a.AlbumId = t.AlbumId JOIN InvoiceLine il ON t.TrackId = il.TrackId GROUP BY ar.ArtistId, ar.Name ORDER BY total_revenue DESC LIMIT 15;",
+        "predicted_sql": "-- 4-table join: Artist -> Album -> Track -> InvoiceLine\nSELECT ar.Name AS artist,\n       ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_revenue\nFROM Artist ar\nJOIN Album a ON ar.ArtistId = a.ArtistId\nJOIN Track t ON a.AlbumId = t.AlbumId\nJOIN InvoiceLine il ON t.TrackId = il.TrackId\nGROUP BY ar.ArtistId, ar.Name\nORDER BY total_revenue DESC\nLIMIT 20",
+        "raw_output": "-- 4-table join: Artist -> Album -> Track -> InvoiceLine\nSELECT ar.Name AS artist,\n       ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_revenue\nFROM Artist ar\nJOIN Album a ON ar.ArtistId = a.ArtistId\nJOIN Track t ON a.AlbumId = t.AlbumId\nJOIN InvoiceLine il ON t.TrackId = il.TrackId\nGROUP BY ar.ArtistId, ar.Name\nORDER BY total_revenue DESC\nLIMIT 20;",
+        "score": 1.0,
+        "reason": "Full value overlap",
+        "latency": 2.459902763366699
+      },
+      {
+        "case_id": "join_02",
+        "category": "multi_hop_join",
+        "difficulty": "hard",
+        "natural_language": "Show the management hierarchy: each employee and who they report to",
+        "ground_truth_sql": "SELECT e.FirstName || ' ' || e.LastName AS employee, e.Title AS employee_title, COALESCE(m.FirstName || ' ' || m.LastName, 'No Manager') AS manager, COALESCE(m.Title, 'N/A') AS manager_title FROM Employee e LEFT JOIN Employee m ON e.ReportsTo = m.EmployeeId ORDER BY e.EmployeeId;",
+        "predicted_sql": "SELECT \n    e.EmployeeId,\n    e.FirstName || ' ' || e.LastName AS employee_name,\n    e.Title AS employee_title,\n    COALESCE(m.FirstName || ' ' || m.LastName, 'No Manager (Top Level)') AS reports_to,\n    m.Title AS manager_title\nFROM Employee e\nLEFT JOIN Employee m ON e.ReportsTo = m.EmployeeId\nORDER BY e.ReportsTo ASC, e.EmployeeId ASC",
+        "raw_output": "SELECT \n    e.EmployeeId,\n    e.FirstName || ' ' || e.LastName AS employee_name,\n    e.Title AS employee_title,\n    COALESCE(m.FirstName || ' ' || m.LastName, 'No Manager (Top Level)') AS reports_to,\n    m.Title AS manager_title\nFROM Employee e\nLEFT JOIN Employee m ON e.ReportsTo = m.EmployeeId\nORDER BY e.ReportsTo ASC, e.EmployeeId ASC;",
+        "score": 0.875,
+        "reason": "Partial match: 87.5% overlap",
+        "latency": 2.9245898723602295
+      },
+      {
+        "case_id": "join_03",
+        "category": "multi_hop_join",
+        "difficulty": "hard",
+        "natural_language": "Which playlists contain tracks by Led Zeppelin?",
+        "ground_truth_sql": "SELECT DISTINCT p.Name AS playlist_name FROM Playlist p JOIN PlaylistTrack pt ON p.PlaylistId = pt.PlaylistId JOIN Track t ON pt.TrackId = t.TrackId JOIN Album a ON t.AlbumId = a.AlbumId JOIN Artist ar ON a.ArtistId = ar.ArtistId WHERE ar.Name = 'Led Zeppelin' ORDER BY p.Name;",
+        "predicted_sql": "SELECT DISTINCT p.PlaylistId, p.Name AS playlist_name\nFROM Playlist p\nJOIN PlaylistTrack pt ON p.PlaylistId = pt.PlaylistId\nJOIN Track t ON pt.TrackId = t.TrackId\nJOIN Album a ON t.AlbumId = a.AlbumId\nJOIN Artist ar ON a.ArtistId = ar.ArtistId\nWHERE ar.Name LIKE '%Led Zeppelin%'\nORDER BY p.Name",
+        "raw_output": "SELECT DISTINCT p.PlaylistId, p.Name AS playlist_name\nFROM Playlist p\nJOIN PlaylistTrack pt ON p.PlaylistId = pt.PlaylistId\nJOIN Track t ON pt.TrackId = t.TrackId\nJOIN Album a ON t.AlbumId = a.AlbumId\nJOIN Artist ar ON a.ArtistId = ar.ArtistId\nWHERE ar.Name LIKE '%Led Zeppelin%'\nORDER BY p.Name;",
+        "score": 1.0,
+        "reason": "Full value overlap",
+        "latency": 3.0832359790802
+      },
+      {
+        "case_id": "join_04",
+        "category": "multi_hop_join",
+        "difficulty": "hard",
+        "natural_language": "List each customer with the total number of tracks they have purchased",
+        "ground_truth_sql": "SELECT c.FirstName || ' ' || c.LastName AS customer, COUNT(il.InvoiceLineId) AS tracks_purchased FROM Customer c JOIN Invoice i ON c.CustomerId = i.CustomerId JOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId GROUP BY c.CustomerId ORDER BY tracks_purchased DESC LIMIT 15;",
+        "predicted_sql": "SELECT \n    c.CustomerId,\n    c.FirstName || ' ' || c.LastName AS customer_name,\n    COUNT(il.InvoiceLineId) AS total_tracks_purchased\nFROM Customer c\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nJOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId\nGROUP BY c.CustomerId, c.FirstName, c.LastName\nORDER BY total_tracks_purchased DESC",
+        "raw_output": "SELECT \n    c.CustomerId,\n    c.FirstName || ' ' || c.LastName AS customer_name,\n    COUNT(il.InvoiceLineId) AS total_tracks_purchased\nFROM Customer c\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nJOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId\nGROUP BY c.CustomerId, c.FirstName, c.LastName\nORDER BY total_tracks_purchased DESC;",
+        "score": 1.0,
+        "reason": "Full value overlap",
+        "latency": 4.378046989440918
+      },
+      {
+        "case_id": "join_05",
+        "category": "multi_hop_join",
+        "difficulty": "hard",
+        "natural_language": "Which customers are handled by employees who were hired before 2003?",
+        "ground_truth_sql": "SELECT c.FirstName || ' ' || c.LastName AS customer, c.Country, e.FirstName || ' ' || e.LastName AS support_rep, e.HireDate FROM Customer c JOIN Employee e ON c.SupportRepId = e.EmployeeId WHERE e.HireDate < '2003-01-01' ORDER BY c.LastName;",
+        "predicted_sql": "SELECT c.CustomerId, c.FirstName, c.LastName, c.Email, c.Country,\n       e.FirstName AS emp_first_name, e.LastName AS emp_last_name,\n       e.HireDate AS employee_hire_date\nFROM Customer c\nJOIN Employee e ON c.SupportRepId = e.EmployeeId\nWHERE e.HireDate < '2003-01-01'\nORDER BY e.LastName, e.FirstName, c.LastName, c.FirstName",
+        "raw_output": "SELECT c.CustomerId, c.FirstName, c.LastName, c.Email, c.Country,\n       e.FirstName AS emp_first_name, e.LastName AS emp_last_name,\n       e.HireDate AS employee_hire_date\nFROM Customer c\nJOIN Employee e ON c.SupportRepId = e.EmployeeId\nWHERE e.HireDate < '2003-01-01'\nORDER BY e.LastName, e.FirstName, c.LastName, c.FirstName;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 12.373189210891724
+      },
+      {
+        "case_id": "agg_01",
+        "category": "advanced_aggregation",
+        "difficulty": "hard",
+        "natural_language": "Which genres have generated more revenue than the average genre?",
+        "ground_truth_sql": "SELECT g.Name AS genre, ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS revenue FROM Genre g JOIN Track t ON g.GenreId = t.GenreId JOIN InvoiceLine il ON t.TrackId = il.TrackId GROUP BY g.GenreId, g.Name HAVING SUM(il.UnitPrice * il.Quantity) > (SELECT AVG(genre_rev) FROM (SELECT SUM(il2.UnitPrice * il2.Quantity) AS genre_rev FROM Genre g2 JOIN Track t2 ON g2.GenreId = t2.GenreId JOIN InvoiceLine il2 ON t2.TrackId = il2.TrackId GROUP BY g2.GenreId)) ORDER BY revenue DESC;",
+        "predicted_sql": "-- Genres with total revenue above the average genre revenue\nSELECT g.Name AS genre,\n       ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_revenue\nFROM Genre g\nJOIN Track t ON g.GenreId = t.GenreId\nJOIN InvoiceLine il ON t.TrackId = il.TrackId\nGROUP BY g.GenreId, g.Name\nHAVING SUM(il.UnitPrice * il.Quantity) > (\n    SELECT AVG(genre_total)\n    FROM (\n        SELECT SUM(il2.UnitPrice * il2.Quantity) AS genre_total\n        FROM Genre g2\n        JOIN Track t2 ON g2.GenreId = t2.GenreId\n        JOIN InvoiceLine il2 ON t2.TrackId = il2.TrackId\n        GROUP BY g2.GenreId\n    )\n)\nORDER BY total_revenue DESC",
+        "raw_output": "-- Genres with total revenue above the average genre revenue\nSELECT g.Name AS genre,\n       ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_revenue\nFROM Genre g\nJOIN Track t ON g.GenreId = t.GenreId\nJOIN InvoiceLine il ON t.TrackId = il.TrackId\nGROUP BY g.GenreId, g.Name\nHAVING SUM(il.UnitPrice * il.Quantity) > (\n    SELECT AVG(genre_total)\n    FROM (\n        SELECT SUM(il2.UnitPrice * il2.Quantity) AS genre_total\n        FROM Genre g2\n        JOIN Track t2 ON g2.GenreId = t2.GenreId\n        JOIN InvoiceLine il2 ON t2.TrackId = il2.TrackId\n        GROUP BY g2.GenreId\n    )\n)\nORDER BY total_revenue DESC;",
+        "score": 1.0,
+        "reason": "Exact match",
+        "latency": 11.559364795684814
+      },
+      {
+        "case_id": "agg_02",
+        "category": "advanced_aggregation",
+        "difficulty": "hard",
+        "natural_language": "For each support representative, how many customers do they handle and what is the total revenue from those customers?",
+        "ground_truth_sql": "SELECT e.FirstName || ' ' || e.LastName AS support_rep, COUNT(DISTINCT c.CustomerId) AS customer_count, ROUND(SUM(i.Total), 2) AS total_revenue FROM Employee e JOIN Customer c ON e.EmployeeId = c.SupportRepId JOIN Invoice i ON c.CustomerId = i.CustomerId GROUP BY e.EmployeeId ORDER BY total_revenue DESC;",
+        "predicted_sql": "SELECT \n    e.EmployeeId,\n    e.FirstName || ' ' || e.LastName AS support_rep,\n    e.Title,\n    COUNT(DISTINCT c.CustomerId) AS customer_count,\n    ROUND(SUM(i.Total), 2) AS total_revenue\nFROM Employee e\nJOIN Customer c ON e.EmployeeId = c.SupportRepId\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nGROUP BY e.EmployeeId, e.FirstName, e.LastName, e.Title\nORDER BY total_revenue DESC",
+        "raw_output": "SELECT \n    e.EmployeeId,\n    e.FirstName || ' ' || e.LastName AS support_rep,\n    e.Title,\n    COUNT(DISTINCT c.CustomerId) AS customer_count,\n    ROUND(SUM(i.Total), 2) AS total_revenue\nFROM Employee e\nJOIN Customer c ON e.EmployeeId = c.SupportRepId\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nGROUP BY e.EmployeeId, e.FirstName, e.LastName, e.Title\nORDER BY total_revenue DESC;",
+        "score": 1.0,
+        "reason": "Subset match (model returned extra columns)",
+        "latency": 8.49113392829895
+      },
+      {
+        "case_id": "agg_03",
+        "category": "advanced_aggregation",
+        "difficulty": "hard",
+        "natural_language": "What percentage of total revenue does each country contribute?",
+        "ground_truth_sql": "SELECT BillingCountry AS country, ROUND(SUM(Total), 2) AS country_revenue, ROUND(SUM(Total) * 100.0 / (SELECT SUM(Total) FROM Invoice), 2) AS revenue_percentage FROM Invoice GROUP BY BillingCountry ORDER BY country_revenue DESC;",
+        "predicted_sql": "SELECT \n    i.BillingCountry AS country,\n    ROUND(SUM(i.Total), 2) AS country_revenue,\n    ROUND(SUM(i.Total) * 100.0 / (SELECT SUM(Total) FROM Invoice), 2) AS revenue_percentage\nFROM Invoice i\nGROUP BY i.BillingCountry\nORDER BY revenue_percentage DESC",
+        "raw_output": "SELECT \n    i.BillingCountry AS country,\n    ROUND(SUM(i.Total), 2) AS country_revenue,\n    ROUND(SUM(i.Total) * 100.0 / (SELECT SUM(Total) FROM Invoice), 2) AS revenue_percentage\nFROM Invoice i\nGROUP BY i.BillingCountry\nORDER BY revenue_percentage DESC;",
+        "score": 1.0,
+        "reason": "Exact match",
+        "latency": 9.610777139663696
+      },
+      {
+        "case_id": "agg_04",
+        "category": "advanced_aggregation",
+        "difficulty": "medium",
+        "natural_language": "How many albums does each artist have, but only show artists with more than 2 albums?",
+        "ground_truth_sql": "SELECT ar.Name AS artist, COUNT(a.AlbumId) AS album_count FROM Artist ar JOIN Album a ON ar.ArtistId = a.ArtistId GROUP BY ar.ArtistId, ar.Name HAVING COUNT(a.AlbumId) > 2 ORDER BY album_count DESC;",
+        "predicted_sql": "SELECT ar.Name AS artist, COUNT(a.AlbumId) AS album_count\nFROM Artist ar\nJOIN Album a ON ar.ArtistId = a.ArtistId\nGROUP BY ar.ArtistId, ar.Name\nHAVING COUNT(a.AlbumId) > 2\nORDER BY album_count DESC",
+        "raw_output": "SELECT ar.Name AS artist, COUNT(a.AlbumId) AS album_count\nFROM Artist ar\nJOIN Album a ON ar.ArtistId = a.ArtistId\nGROUP BY ar.ArtistId, ar.Name\nHAVING COUNT(a.AlbumId) > 2\nORDER BY album_count DESC;",
+        "score": 1.0,
+        "reason": "Exact match",
+        "latency": 9.822106122970581
+      },
+      {
+        "case_id": "agg_05",
+        "category": "advanced_aggregation",
+        "difficulty": "hard",
+        "natural_language": "What is the average number of tracks per album?",
+        "ground_truth_sql": "SELECT ROUND(AVG(track_count), 2) AS avg_tracks_per_album FROM (SELECT AlbumId, COUNT(*) AS track_count FROM Track GROUP BY AlbumId);",
+        "predicted_sql": "SELECT ROUND(AVG(track_count), 2) AS avg_tracks_per_album\nFROM (SELECT AlbumId, COUNT(*) AS track_count FROM Track GROUP BY AlbumId)",
+        "raw_output": "SELECT ROUND(AVG(track_count), 2) AS avg_tracks_per_album\nFROM (SELECT AlbumId, COUNT(*) AS track_count FROM Track GROUP BY AlbumId);",
+        "score": 1.0,
+        "reason": "Exact match",
+        "latency": 9.033096075057983
+      },
+      {
+        "case_id": "advanced_01",
+        "category": "advanced_sql",
+        "difficulty": "hard",
+        "natural_language": "Which customers have spent more than the average customer?",
+        "ground_truth_sql": "SELECT c.FirstName || ' ' || c.LastName AS customer, ROUND(SUM(i.Total), 2) AS total_spent FROM Customer c JOIN Invoice i ON c.CustomerId = i.CustomerId GROUP BY c.CustomerId HAVING SUM(i.Total) > (SELECT AVG(customer_total) FROM (SELECT SUM(Total) AS customer_total FROM Invoice GROUP BY CustomerId)) ORDER BY total_spent DESC;",
+        "predicted_sql": "-- Customers whose total spending exceeds the average total spending across all customers\nSELECT\n    c.CustomerId,\n    c.FirstName || ' ' || c.LastName AS customer_name,\n    c.Country,\n    ROUND(SUM(i.Total), 2) AS total_spent\nFROM Customer c\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nGROUP BY c.CustomerId, c.FirstName, c.LastName, c.Country\nHAVING SUM(i.Total) > (\n    SELECT AVG(customer_total)\n    FROM (\n        SELECT SUM(Total) AS customer_total\n        FROM Invoice\n        GROUP BY CustomerId\n    )\n)\nORDER BY total_spent DESC",
+        "raw_output": "-- Customers whose total spending exceeds the average total spending across all customers\nSELECT\n    c.CustomerId,\n    c.FirstName || ' ' || c.LastName AS customer_name,\n    c.Country,\n    ROUND(SUM(i.Total), 2) AS total_spent\nFROM Customer c\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nGROUP BY c.CustomerId, c.FirstName, c.LastName, c.Country\nHAVING SUM(i.Total) > (\n    SELECT AVG(customer_total)\n    FROM (\n        SELECT SUM(Total) AS customer_total\n        FROM Invoice\n        GROUP BY CustomerId\n    )\n)\nORDER BY total_spent DESC;",
+        "score": 1.0,
+        "reason": "Subset match (model returned extra columns)",
+        "latency": 11.525789022445679
+      },
+      {
+        "case_id": "advanced_02",
+        "category": "advanced_sql",
+        "difficulty": "hard",
+        "natural_language": "Rank the top 3 selling genres in each country",
+        "ground_truth_sql": "SELECT country, genre, tracks_sold, genre_rank FROM (SELECT i.BillingCountry AS country, g.Name AS genre, COUNT(il.InvoiceLineId) AS tracks_sold, ROW_NUMBER() OVER (PARTITION BY i.BillingCountry ORDER BY COUNT(il.InvoiceLineId) DESC) AS genre_rank FROM Invoice i JOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId JOIN Track t ON il.TrackId = t.TrackId JOIN Genre g ON t.GenreId = g.GenreId GROUP BY i.BillingCountry, g.GenreId, g.Name) WHERE genre_rank <= 3 ORDER BY country, genre_rank;",
+        "predicted_sql": "SELECT \n    ranked.BillingCountry,\n    ranked.Genre,\n    ranked.total_sales,\n    ranked.rank\nFROM (\n    SELECT \n        i.BillingCountry,\n        g.Name AS Genre,\n        ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_sales,\n        RANK() OVER (\n            PARTITION BY i.BillingCountry \n            ORDER BY SUM(il.UnitPrice * il.Quantity) DESC\n        ) AS rank\n    FROM Invoice i\n    JOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId\n    JOIN Track t ON il.TrackId = t.TrackId\n    JOIN Genre g ON t.GenreId = g.GenreId\n    GROUP BY i.BillingCountry, g.GenreId, g.Name\n) AS ranked\nWHERE ranked.rank <= 3\nORDER BY ranked.BillingCountry, ranked.rank",
+        "raw_output": "SELECT \n    ranked.BillingCountry,\n    ranked.Genre,\n    ranked.total_sales,\n    ranked.rank\nFROM (\n    SELECT \n        i.BillingCountry,\n        g.Name AS Genre,\n        ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_sales,\n        RANK() OVER (\n            PARTITION BY i.BillingCountry \n            ORDER BY SUM(il.UnitPrice * il.Quantity) DESC\n        ) AS rank\n    FROM Invoice i\n    JOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId\n    JOIN Track t ON il.TrackId = t.TrackId\n    JOIN Genre g ON t.GenreId = g.GenreId\n    GROUP BY i.BillingCountry, g.GenreId, g.Name\n) AS ranked\nWHERE ranked.rank <= 3\nORDER BY ranked.BillingCountry, ranked.rank;",
+        "score": 0.013888888888888888,
+        "reason": "Partial match: 1.4% overlap",
+        "latency": 11.932148933410645
+      },
+      {
+        "case_id": "advanced_03",
+        "category": "advanced_sql",
+        "difficulty": "hard",
+        "natural_language": "Which genres have never been sold to any customer?",
+        "ground_truth_sql": "SELECT g.Name AS genre FROM Genre g WHERE g.GenreId NOT IN (SELECT DISTINCT t.GenreId FROM Track t JOIN InvoiceLine il ON t.TrackId = il.TrackId WHERE t.GenreId IS NOT NULL) ORDER BY g.Name;",
+        "predicted_sql": "SELECT g.GenreId, g.Name AS genre\nFROM Genre g\nWHERE g.GenreId NOT IN (\n    SELECT DISTINCT t.GenreId\n    FROM InvoiceLine il\n    JOIN Track t ON il.TrackId = t.TrackId\n    WHERE t.GenreId IS NOT NULL\n)",
+        "raw_output": "SELECT g.GenreId, g.Name AS genre\nFROM Genre g\nWHERE g.GenreId NOT IN (\n    SELECT DISTINCT t.GenreId\n    FROM InvoiceLine il\n    JOIN Track t ON il.TrackId = t.TrackId\n    WHERE t.GenreId IS NOT NULL\n);",
+        "score": 1.0,
+        "reason": "Subset match (model returned extra columns)",
+        "latency": 2.194946050643921
+      },
+      {
+        "case_id": "advanced_04",
+        "category": "advanced_sql",
+        "difficulty": "hard",
+        "natural_language": "Find customers who have made purchases in every year that has invoice data",
+        "ground_truth_sql": "SELECT c.FirstName || ' ' || c.LastName AS customer FROM Customer c JOIN Invoice i ON c.CustomerId = i.CustomerId GROUP BY c.CustomerId HAVING COUNT(DISTINCT STRFTIME('%Y', i.InvoiceDate)) = (SELECT COUNT(DISTINCT STRFTIME('%Y', InvoiceDate)) FROM Invoice) ORDER BY customer;",
+        "predicted_sql": "SELECT c.CustomerId, c.FirstName, c.LastName, c.Email,\n       COUNT(DISTINCT strftime('%Y', i.InvoiceDate)) AS years_purchased,\n       (SELECT COUNT(DISTINCT strftime('%Y', InvoiceDate)) FROM Invoice) AS total_years_with_data\nFROM Customer c\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nGROUP BY c.CustomerId, c.FirstName, c.LastName, c.Email\nHAVING COUNT(DISTINCT strftime('%Y', i.InvoiceDate)) = (\n    SELECT COUNT(DISTINCT strftime('%Y', InvoiceDate)) FROM Invoice\n)\nORDER BY c.LastName, c.FirstName",
+        "raw_output": "SELECT c.CustomerId, c.FirstName, c.LastName, c.Email,\n       COUNT(DISTINCT strftime('%Y', i.InvoiceDate)) AS years_purchased,\n       (SELECT COUNT(DISTINCT strftime('%Y', InvoiceDate)) FROM Invoice) AS total_years_with_data\nFROM Customer c\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nGROUP BY c.CustomerId, c.FirstName, c.LastName, c.Email\nHAVING COUNT(DISTINCT strftime('%Y', i.InvoiceDate)) = (\n    SELECT COUNT(DISTINCT strftime('%Y', InvoiceDate)) FROM Invoice\n)\nORDER BY c.LastName, c.FirstName;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 16.963203191757202
+      },
+      {
+        "case_id": "advanced_05",
+        "category": "advanced_sql",
+        "difficulty": "hard",
+        "natural_language": "Show each customer's most recent invoice date and the total amount of that invoice",
+        "ground_truth_sql": "SELECT c.FirstName || ' ' || c.LastName AS customer, i.InvoiceDate AS most_recent_date, i.Total AS invoice_total FROM Customer c JOIN Invoice i ON c.CustomerId = i.CustomerId WHERE i.InvoiceDate = (SELECT MAX(i2.InvoiceDate) FROM Invoice i2 WHERE i2.CustomerId = c.CustomerId) ORDER BY most_recent_date DESC LIMIT 15;",
+        "predicted_sql": "SELECT \n    c.CustomerId,\n    c.FirstName || ' ' || c.LastName AS customer_name,\n    i.InvoiceDate AS most_recent_invoice_date,\n    i.Total AS invoice_total\nFROM Customer c\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nJOIN (\n    SELECT CustomerId, MAX(InvoiceDate) AS max_date\n    FROM Invoice\n    GROUP BY CustomerId\n) latest ON i.CustomerId = latest.CustomerId AND i.InvoiceDate = latest.max_date\nORDER BY i.InvoiceDate DESC\nLIMIT 20",
+        "raw_output": "SELECT \n    c.CustomerId,\n    c.FirstName || ' ' || c.LastName AS customer_name,\n    i.InvoiceDate AS most_recent_invoice_date,\n    i.Total AS invoice_total\nFROM Customer c\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nJOIN (\n    SELECT CustomerId, MAX(InvoiceDate) AS max_date\n    FROM Invoice\n    GROUP BY CustomerId\n) latest ON i.CustomerId = latest.CustomerId AND i.InvoiceDate = latest.max_date\nORDER BY i.InvoiceDate DESC\nLIMIT 20;",
+        "score": 1.0,
+        "reason": "Full value overlap",
+        "latency": 9.309398174285889
+      },
+      {
+        "case_id": "messy_01",
+        "category": "messy_adversarial",
+        "difficulty": "hard",
+        "natural_language": "shwo me the top sellin artsts and how much there albums made",
+        "ground_truth_sql": "SELECT ar.Name AS artist, COUNT(DISTINCT a.AlbumId) AS album_count, ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_revenue FROM Artist ar JOIN Album a ON ar.ArtistId = a.ArtistId JOIN Track t ON a.AlbumId = t.AlbumId JOIN InvoiceLine il ON t.TrackId = il.TrackId GROUP BY ar.ArtistId, ar.Name ORDER BY total_revenue DESC LIMIT 10;",
+        "predicted_sql": "-- Top selling artists by total revenue from album track sales\nSELECT ar.Name AS artist,\n       COUNT(DISTINCT a.AlbumId) AS album_count,\n       COUNT(DISTINCT t.TrackId) AS tracks_sold,\n       ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_revenue\nFROM Artist ar\nJOIN Album a ON ar.ArtistId = a.ArtistId\nJOIN Track t ON a.AlbumId = t.AlbumId\nJOIN InvoiceLine il ON t.TrackId = il.TrackId\nGROUP BY ar.ArtistId, ar.Name\nORDER BY total_revenue DESC\nLIMIT 20",
+        "raw_output": "-- Top selling artists by total revenue from album track sales\nSELECT ar.Name AS artist,\n       COUNT(DISTINCT a.AlbumId) AS album_count,\n       COUNT(DISTINCT t.TrackId) AS tracks_sold,\n       ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_revenue\nFROM Artist ar\nJOIN Album a ON ar.ArtistId = a.ArtistId\nJOIN Track t ON a.AlbumId = t.AlbumId\nJOIN InvoiceLine il ON t.TrackId = il.TrackId\nGROUP BY ar.ArtistId, ar.Name\nORDER BY total_revenue DESC\nLIMIT 20;",
+        "score": 1.0,
+        "reason": "Full value overlap",
+        "latency": 9.82040023803711
+      },
+      {
+        "case_id": "messy_02",
+        "category": "messy_adversarial",
+        "difficulty": "hard",
+        "natural_language": "trakcs that nobdy has purchsed",
+        "ground_truth_sql": "SELECT t.Name AS track_name, ar.Name AS artist, g.Name AS genre FROM Track t JOIN Album a ON t.AlbumId = a.AlbumId JOIN Artist ar ON a.ArtistId = ar.ArtistId LEFT JOIN Genre g ON t.GenreId = g.GenreId WHERE t.TrackId NOT IN (SELECT DISTINCT TrackId FROM InvoiceLine) ORDER BY ar.Name, t.Name LIMIT 20;",
+        "predicted_sql": "SELECT t.TrackId, t.Name AS track_name, ar.Name AS artist, a.Title AS album\nFROM Track t\nJOIN Album a ON t.AlbumId = a.AlbumId\nJOIN Artist ar ON a.ArtistId = ar.ArtistId\nWHERE t.TrackId NOT IN (\n    SELECT DISTINCT TrackId FROM InvoiceLine\n)\nORDER BY ar.Name, t.Name",
+        "raw_output": "SELECT t.TrackId, t.Name AS track_name, ar.Name AS artist, a.Title AS album\nFROM Track t\nJOIN Album a ON t.AlbumId = a.AlbumId\nJOIN Artist ar ON a.ArtistId = ar.ArtistId\nWHERE t.TrackId NOT IN (\n    SELECT DISTINCT TrackId FROM InvoiceLine\n)\nORDER BY ar.Name, t.Name;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 8.889639854431152
+      },
+      {
+        "case_id": "messy_03",
+        "category": "messy_adversarial",
+        "difficulty": "hard",
+        "natural_language": "gimme all rock n metal songs with there lenghts in minuts",
+        "ground_truth_sql": "SELECT t.Name AS track_name, g.Name AS genre, ar.Name AS artist, ROUND(t.Milliseconds / 60000.0, 2) AS duration_minutes FROM Track t JOIN Genre g ON t.GenreId = g.GenreId JOIN Album a ON t.AlbumId = a.AlbumId JOIN Artist ar ON a.ArtistId = ar.ArtistId WHERE g.Name IN ('Rock', 'Metal') ORDER BY g.Name, t.Name LIMIT 20;",
+        "predicted_sql": "SELECT t.Name AS track_name,\n       g.Name AS genre,\n       ar.Name AS artist,\n       a.Title AS album,\n       ROUND(t.Milliseconds / 60000.0, 2) AS duration_minutes\nFROM Track t\nJOIN Genre g ON t.GenreId = g.GenreId\nJOIN Album a ON t.AlbumId = a.AlbumId\nJOIN Artist ar ON a.ArtistId = ar.ArtistId\nWHERE g.Name IN ('Rock', 'Metal', 'Hard Rock', 'Heavy Metal', 'Rock And Roll', 'Punk Rock', 'Alternative & Punk')\nORDER BY g.Name, duration_minutes DESC",
+        "raw_output": "SELECT t.Name AS track_name,\n       g.Name AS genre,\n       ar.Name AS artist,\n       a.Title AS album,\n       ROUND(t.Milliseconds / 60000.0, 2) AS duration_minutes\nFROM Track t\nJOIN Genre g ON t.GenreId = g.GenreId\nJOIN Album a ON t.AlbumId = a.AlbumId\nJOIN Artist ar ON a.ArtistId = ar.ArtistId\nWHERE g.Name IN ('Rock', 'Metal', 'Hard Rock', 'Heavy Metal', 'Rock And Roll', 'Punk Rock', 'Alternative & Punk')\nORDER BY g.Name, duration_minutes DESC;",
+        "score": 1.0,
+        "reason": "Full value overlap",
+        "latency": 11.036480188369751
+      },
+      {
+        "case_id": "messy_04",
+        "category": "messy_adversarial",
+        "difficulty": "hard",
+        "natural_language": "employes who dont manege anyone",
+        "ground_truth_sql": "SELECT e.FirstName || ' ' || e.LastName AS employee, e.Title FROM Employee e WHERE e.EmployeeId NOT IN (SELECT DISTINCT ReportsTo FROM Employee WHERE ReportsTo IS NOT NULL) ORDER BY e.LastName;",
+        "predicted_sql": "SELECT e.EmployeeId, e.FirstName, e.LastName, e.Title\nFROM Employee e\nWHERE e.EmployeeId NOT IN (\n    SELECT DISTINCT ReportsTo\n    FROM Employee\n    WHERE ReportsTo IS NOT NULL\n)\nORDER BY e.LastName, e.FirstName",
+        "raw_output": "SELECT e.EmployeeId, e.FirstName, e.LastName, e.Title\nFROM Employee e\nWHERE e.EmployeeId NOT IN (\n    SELECT DISTINCT ReportsTo\n    FROM Employee\n    WHERE ReportsTo IS NOT NULL\n)\nORDER BY e.LastName, e.FirstName;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 8.422677040100098
+      },
+      {
+        "case_id": "messy_05",
+        "category": "messy_adversarial",
+        "difficulty": "medium",
+        "natural_language": "avg invioce amnt per counrty sortd high to low",
+        "ground_truth_sql": "SELECT BillingCountry AS country, ROUND(AVG(Total), 2) AS avg_invoice FROM Invoice GROUP BY BillingCountry ORDER BY avg_invoice DESC;",
+        "predicted_sql": "SELECT \n    c.Country,\n    ROUND(AVG(i.Total), 2) AS avg_invoice_amount,\n    COUNT(i.InvoiceId) AS invoice_count\nFROM Invoice i\nJOIN Customer c ON i.CustomerId = c.CustomerId\nGROUP BY c.Country\nORDER BY avg_invoice_amount DESC",
+        "raw_output": "SELECT \n    c.Country,\n    ROUND(AVG(i.Total), 2) AS avg_invoice_amount,\n    COUNT(i.InvoiceId) AS invoice_count\nFROM Invoice i\nJOIN Customer c ON i.CustomerId = c.CustomerId\nGROUP BY c.Country\nORDER BY avg_invoice_amount DESC;",
+        "score": 1.0,
+        "reason": "Subset match (model returned extra columns)",
+        "latency": 9.772873878479004
+      },
+      {
+        "case_id": "non_eng_01",
+        "category": "non_english_complex",
+        "difficulty": "hard",
+        "natural_language": "哪些藝人的專輯數量超過三張？列出藝人名稱和專輯數",
+        "ground_truth_sql": "SELECT ar.Name AS artist, COUNT(a.AlbumId) AS album_count FROM Artist ar JOIN Album a ON ar.ArtistId = a.ArtistId GROUP BY ar.ArtistId, ar.Name HAVING COUNT(a.AlbumId) > 3 ORDER BY album_count DESC;",
+        "predicted_sql": "SELECT ar.Name AS artist_name, COUNT(a.AlbumId) AS album_count\nFROM Artist ar\nJOIN Album a ON ar.ArtistId = a.ArtistId\nGROUP BY ar.ArtistId, ar.Name\nHAVING COUNT(a.AlbumId) > 3\nORDER BY album_count DESC",
+        "raw_output": "SELECT ar.Name AS artist_name, COUNT(a.AlbumId) AS album_count\nFROM Artist ar\nJOIN Album a ON ar.ArtistId = a.ArtistId\nGROUP BY ar.ArtistId, ar.Name\nHAVING COUNT(a.AlbumId) > 3\nORDER BY album_count DESC;",
+        "score": 1.0,
+        "reason": "Exact match",
+        "latency": 11.045927286148071
+      },
+      {
+        "case_id": "non_eng_02",
+        "category": "non_english_complex",
+        "difficulty": "hard",
+        "natural_language": "各ジャンルの売上金額トップ5を国別に表示してください",
+        "ground_truth_sql": "SELECT g.Name AS genre, ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_sales FROM Genre g JOIN Track t ON g.GenreId = t.GenreId JOIN InvoiceLine il ON t.TrackId = il.TrackId GROUP BY g.GenreId, g.Name ORDER BY total_sales DESC LIMIT 5;",
+        "predicted_sql": "-- Top 5 genres by sales amount for each country\n-- Using ROW_NUMBER() window function to rank genres within each country\nSELECT\n    sub.BillingCountry AS country,\n    sub.genre_name AS genre,\n    sub.total_sales,\n    sub.rank_in_country\nFROM (\n    SELECT\n        i.BillingCountry,\n        g.Name AS genre_name,\n        ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_sales,\n        ROW_NUMBER() OVER (\n            PARTITION BY i.BillingCountry\n            ORDER BY SUM(il.UnitPrice * il.Quantity) DESC\n        ) AS rank_in_country\n    FROM Invoice i\n    JOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId\n    JOIN Track t ON il.TrackId = t.TrackId\n    JOIN Genre g ON t.GenreId = g.GenreId\n    GROUP BY i.BillingCountry, g.GenreId, g.Name\n) sub\nWHERE sub.rank_in_country <= 5\nORDER BY sub.BillingCountry, sub.rank_in_country",
+        "raw_output": "-- Top 5 genres by sales amount for each country\n-- Using ROW_NUMBER() window function to rank genres within each country\nSELECT\n    sub.BillingCountry AS country,\n    sub.genre_name AS genre,\n    sub.total_sales,\n    sub.rank_in_country\nFROM (\n    SELECT\n        i.BillingCountry,\n        g.Name AS genre_name,\n        ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_sales,\n        ROW_NUMBER() OVER (\n            PARTITION BY i.BillingCountry\n            ORDER BY SUM(il.UnitPrice * il.Quantity) DESC\n        ) AS rank_in_country\n    FROM Invoice i\n    JOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId\n    JOIN Track t ON il.TrackId = t.TrackId\n    JOIN Genre g ON t.GenreId = g.GenreId\n    GROUP BY i.BillingCountry, g.GenreId, g.Name\n) sub\nWHERE sub.rank_in_country <= 5\nORDER BY sub.BillingCountry, sub.rank_in_country;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 12.249210834503174
+      },
+      {
+        "case_id": "non_eng_03",
+        "category": "non_english_complex",
+        "difficulty": "hard",
+        "natural_language": "Welche Kunden haben insgesamt mehr als 45 Dollar ausgegeben?",
+        "ground_truth_sql": "SELECT c.FirstName || ' ' || c.LastName AS customer, ROUND(SUM(i.Total), 2) AS total_spent FROM Customer c JOIN Invoice i ON c.CustomerId = i.CustomerId GROUP BY c.CustomerId HAVING SUM(i.Total) > 45 ORDER BY total_spent DESC;",
+        "predicted_sql": "SELECT c.CustomerId,\n       c.FirstName || ' ' || c.LastName AS customer_name,\n       c.Email,\n       c.Country,\n       ROUND(SUM(i.Total), 2) AS total_spent\nFROM Customer c\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nGROUP BY c.CustomerId, c.FirstName, c.LastName, c.Email, c.Country\nHAVING SUM(i.Total) > 45\nORDER BY total_spent DESC",
+        "raw_output": "SELECT c.CustomerId,\n       c.FirstName || ' ' || c.LastName AS customer_name,\n       c.Email,\n       c.Country,\n       ROUND(SUM(i.Total), 2) AS total_spent\nFROM Customer c\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nGROUP BY c.CustomerId, c.FirstName, c.LastName, c.Email, c.Country\nHAVING SUM(i.Total) > 45\nORDER BY total_spent DESC;",
+        "score": 1.0,
+        "reason": "Subset match (model returned extra columns)",
+        "latency": 2.608720064163208
+      },
+      {
+        "case_id": "non_eng_04",
+        "category": "non_english_complex",
+        "difficulty": "hard",
+        "natural_language": "找出每位員工負責的客戶中，消費總額最高的客戶是誰",
+        "ground_truth_sql": "SELECT e.FirstName || ' ' || e.LastName AS support_rep, c.FirstName || ' ' || c.LastName AS top_customer, ROUND(customer_spending.total_spent, 2) AS total_spent FROM Employee e JOIN Customer c ON e.EmployeeId = c.SupportRepId JOIN (SELECT CustomerId, SUM(Total) AS total_spent FROM Invoice GROUP BY CustomerId) AS customer_spending ON c.CustomerId = customer_spending.CustomerId WHERE customer_spending.total_spent = (SELECT MAX(cs2.total_spent) FROM Customer c2 JOIN (SELECT CustomerId, SUM(Total) AS total_spent FROM Invoice GROUP BY CustomerId) AS cs2 ON c2.CustomerId = cs2.CustomerId WHERE c2.SupportRepId = e.EmployeeId) ORDER BY e.LastName;",
+        "predicted_sql": "SELECT \n    e.EmployeeId,\n    e.FirstName || ' ' || e.LastName AS employee_name,\n    c.CustomerId,\n    c.FirstName || ' ' || c.LastName AS customer_name,\n    ROUND(SUM(i.Total), 2) AS total_spent\nFROM Employee e\nJOIN Customer c ON e.EmployeeId = c.SupportRepId\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nGROUP BY e.EmployeeId, c.CustomerId\nHAVING SUM(i.Total) = (\n    -- For each employee, find the maximum total spent by any of their customers\n    SELECT MAX(customer_total)\n    FROM (\n        SELECT c2.CustomerId, SUM(i2.Total) AS customer_total\n        FROM Customer c2\n        JOIN Invoice i2 ON c2.CustomerId = i2.CustomerId\n        WHERE c2.SupportRepId = e.EmployeeId\n        GROUP BY c2.CustomerId\n    )\n)\nORDER BY e.EmployeeId",
+        "raw_output": "SELECT \n    e.EmployeeId,\n    e.FirstName || ' ' || e.LastName AS employee_name,\n    c.CustomerId,\n    c.FirstName || ' ' || c.LastName AS customer_name,\n    ROUND(SUM(i.Total), 2) AS total_spent\nFROM Employee e\nJOIN Customer c ON e.EmployeeId = c.SupportRepId\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nGROUP BY e.EmployeeId, c.CustomerId\nHAVING SUM(i.Total) = (\n    -- For each employee, find the maximum total spent by any of their customers\n    SELECT MAX(customer_total)\n    FROM (\n        SELECT c2.CustomerId, SUM(i2.Total) AS customer_total\n        FROM Customer c2\n        JOIN Invoice i2 ON c2.CustomerId = i2.CustomerId\n        WHERE c2.SupportRepId = e.EmployeeId\n        GROUP BY c2.CustomerId\n    )\n)\nORDER BY e.EmployeeId;",
+        "score": 1.0,
+        "reason": "Subset match (model returned extra columns)",
+        "latency": 17.052632093429565
+      },
+      {
+        "case_id": "non_eng_05",
+        "category": "non_english_complex",
+        "difficulty": "hard",
+        "natural_language": "Quels sont les 3 genres les plus vendus en France ?",
+        "ground_truth_sql": "SELECT g.Name AS genre, COUNT(il.InvoiceLineId) AS tracks_sold FROM Genre g JOIN Track t ON g.GenreId = t.GenreId JOIN InvoiceLine il ON t.TrackId = il.TrackId JOIN Invoice i ON il.InvoiceId = i.InvoiceId WHERE i.BillingCountry = 'France' GROUP BY g.GenreId, g.Name ORDER BY tracks_sold DESC LIMIT 3;",
+        "predicted_sql": "SELECT g.Name AS genre,\n       SUM(il.Quantity) AS total_sold\nFROM InvoiceLine il\nJOIN Invoice i ON il.InvoiceId = i.InvoiceId\nJOIN Track t ON il.TrackId = t.TrackId\nJOIN Genre g ON t.GenreId = g.GenreId\nWHERE i.BillingCountry = 'France'\nGROUP BY g.GenreId, g.Name\nORDER BY total_sold DESC\nLIMIT 3",
+        "raw_output": "SELECT g.Name AS genre,\n       SUM(il.Quantity) AS total_sold\nFROM InvoiceLine il\nJOIN Invoice i ON il.InvoiceId = i.InvoiceId\nJOIN Track t ON il.TrackId = t.TrackId\nJOIN Genre g ON t.GenreId = g.GenreId\nWHERE i.BillingCountry = 'France'\nGROUP BY g.GenreId, g.Name\nORDER BY total_sold DESC\nLIMIT 3;",
+        "score": 1.0,
+        "reason": "Exact match",
+        "latency": 8.790969848632812
+      }
+    ],
+    "errors": [
+      {
+        "case_id": "filter_01",
+        "category": "tricky_filtering",
+        "question": "Find all tracks that have no composer listed",
+        "predicted_sql": "SELECT t.TrackId, t.Name AS track_name, a.Title AS album, ar.Name AS artist\nFROM Track t\nJOIN Album a ON t.AlbumId = a.AlbumId\nJOIN Artist ar ON a.ArtistId = ar.ArtistId\nWHERE t.Composer IS NULL\nORDER",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "filter_04",
+        "category": "tricky_filtering",
+        "question": "Show tracks that are longer than 10 minutes and cost more than $0.99",
+        "predicted_sql": "SELECT t.Name AS track_name,\n       t.Milliseconds / 60000.0 AS duration_minutes,\n       t.UnitPrice AS price,\n       a.Title AS album,\n       ar.Name AS artist\nFROM Track t\nJOIN Album a ON t.AlbumId ",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "join_02",
+        "category": "multi_hop_join",
+        "question": "Show the management hierarchy: each employee and who they report to",
+        "predicted_sql": "SELECT \n    e.EmployeeId,\n    e.FirstName || ' ' || e.LastName AS employee_name,\n    e.Title AS employee_title,\n    COALESCE(m.FirstName || ' ' || m.LastName, 'No Manager (Top Level)') AS reports_to,\n",
+        "score": 0.875,
+        "reason": "Partial match: 87.5% overlap"
+      },
+      {
+        "case_id": "join_05",
+        "category": "multi_hop_join",
+        "question": "Which customers are handled by employees who were hired before 2003?",
+        "predicted_sql": "SELECT c.CustomerId, c.FirstName, c.LastName, c.Email, c.Country,\n       e.FirstName AS emp_first_name, e.LastName AS emp_last_name,\n       e.HireDate AS employee_hire_date\nFROM Customer c\nJOIN Employ",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "advanced_02",
+        "category": "advanced_sql",
+        "question": "Rank the top 3 selling genres in each country",
+        "predicted_sql": "SELECT \n    ranked.BillingCountry,\n    ranked.Genre,\n    ranked.total_sales,\n    ranked.rank\nFROM (\n    SELECT \n        i.BillingCountry,\n        g.Name AS Genre,\n        ROUND(SUM(il.UnitPrice * il.Q",
+        "score": 0.013888888888888888,
+        "reason": "Partial match: 1.4% overlap"
+      },
+      {
+        "case_id": "advanced_04",
+        "category": "advanced_sql",
+        "question": "Find customers who have made purchases in every year that has invoice data",
+        "predicted_sql": "SELECT c.CustomerId, c.FirstName, c.LastName, c.Email,\n       COUNT(DISTINCT strftime('%Y', i.InvoiceDate)) AS years_purchased,\n       (SELECT COUNT(DISTINCT strftime('%Y', InvoiceDate)) FROM Invoice)",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "messy_02",
+        "category": "messy_adversarial",
+        "question": "trakcs that nobdy has purchsed",
+        "predicted_sql": "SELECT t.TrackId, t.Name AS track_name, ar.Name AS artist, a.Title AS album\nFROM Track t\nJOIN Album a ON t.AlbumId = a.AlbumId\nJOIN Artist ar ON a.ArtistId = ar.ArtistId\nWHERE t.TrackId NOT IN (\n    S",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "messy_04",
+        "category": "messy_adversarial",
+        "question": "employes who dont manege anyone",
+        "predicted_sql": "SELECT e.EmployeeId, e.FirstName, e.LastName, e.Title\nFROM Employee e\nWHERE e.EmployeeId NOT IN (\n    SELECT DISTINCT ReportsTo\n    FROM Employee\n    WHERE ReportsTo IS NOT NULL\n)\nORDER BY e.LastName,",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "non_eng_02",
+        "category": "non_english_complex",
+        "question": "各ジャンルの売上金額トップ5を国別に表示してください",
+        "predicted_sql": "-- Top 5 genres by sales amount for each country\n-- Using ROW_NUMBER() window function to rank genres within each country\nSELECT\n    sub.BillingCountry AS country,\n    sub.genre_name AS genre,\n    sub",
+        "score": 0.0,
+        "reason": "No match"
+      }
+    ]
+  },
+  "gpt-4o": {
+    "accuracy": 0.3333333333333333,
+    "correct": 10,
+    "total": 30,
+    "threshold_pass": false,
+    "category_breakdown": {
+      "tricky_filtering": {
+        "accuracy": 0.2,
+        "correct": 1,
+        "total": 5
+      },
+      "multi_hop_join": {
+        "accuracy": 0.4,
+        "correct": 2,
+        "total": 5
+      },
+      "advanced_aggregation": {
+        "accuracy": 0.4,
+        "correct": 2,
+        "total": 5
+      },
+      "advanced_sql": {
+        "accuracy": 0.2,
+        "correct": 1,
+        "total": 5
+      },
+      "messy_adversarial": {
+        "accuracy": 0.2,
+        "correct": 1,
+        "total": 5
+      },
+      "non_english_complex": {
+        "accuracy": 0.6,
+        "correct": 3,
+        "total": 5
+      }
+    },
+    "avg_latency": 6.084957273801168,
+    "results": [
+      {
+        "case_id": "filter_01",
+        "category": "tricky_filtering",
+        "difficulty": "medium",
+        "natural_language": "Find all tracks that have no composer listed",
+        "ground_truth_sql": "SELECT t.Name AS track_name, a.Title AS album FROM Track t JOIN Album a ON t.AlbumId = a.AlbumId WHERE t.Composer IS NULL ORDER BY t.Name LIMIT 20;",
+        "predicted_sql": "SELECT t.Name AS track_name\nFROM Track t\nWHERE t.Composer IS NULL\nLIMIT 20",
+        "raw_output": "SELECT t.Name AS track_name\nFROM Track t\nWHERE t.Composer IS NULL\nLIMIT 20;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 1.3134210109710693
+      },
+      {
+        "case_id": "filter_02",
+        "category": "tricky_filtering",
+        "difficulty": "medium",
+        "natural_language": "Which customers do not have a company?",
+        "ground_truth_sql": "SELECT FirstName, LastName, Email, Country FROM Customer WHERE Company IS NULL ORDER BY LastName;",
+        "predicted_sql": "SELECT CustomerId, FirstName, LastName, Email\nFROM Customer\nWHERE Company IS NULL\nLIMIT 20",
+        "raw_output": "SELECT CustomerId, FirstName, LastName, Email\nFROM Customer\nWHERE Company IS NULL\nLIMIT 20;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 1.3188021183013916
+      },
+      {
+        "case_id": "filter_03",
+        "category": "tricky_filtering",
+        "difficulty": "medium",
+        "natural_language": "List all invoices from the first quarter of 2025",
+        "ground_truth_sql": "SELECT InvoiceId, CustomerId, InvoiceDate, Total FROM Invoice WHERE InvoiceDate >= '2025-01-01' AND InvoiceDate < '2025-04-01' ORDER BY InvoiceDate;",
+        "predicted_sql": "SELECT InvoiceId, CustomerId, InvoiceDate, Total\nFROM Invoice\nWHERE InvoiceDate BETWEEN '2025-01-01' AND '2025-03-31'\nORDER BY InvoiceDate\nLIMIT 20",
+        "raw_output": "SELECT InvoiceId, CustomerId, InvoiceDate, Total\nFROM Invoice\nWHERE InvoiceDate BETWEEN '2025-01-01' AND '2025-03-31'\nORDER BY InvoiceDate\nLIMIT 20;",
+        "score": 0.8947368421052632,
+        "reason": "Partial match: 89.5% overlap",
+        "latency": 1.0165228843688965
+      },
+      {
+        "case_id": "filter_04",
+        "category": "tricky_filtering",
+        "difficulty": "medium",
+        "natural_language": "Show tracks that are longer than 10 minutes and cost more than $0.99",
+        "ground_truth_sql": "SELECT t.Name AS track_name, ar.Name AS artist, ROUND(t.Milliseconds / 60000.0, 2) AS duration_minutes, t.UnitPrice FROM Track t JOIN Album a ON t.AlbumId = a.AlbumId JOIN Artist ar ON a.ArtistId = ar.ArtistId WHERE t.Milliseconds > 600000 AND t.UnitPrice > 0.99 ORDER BY t.Milliseconds DESC;",
+        "predicted_sql": "SELECT t.Name AS track_name, \n       t.Milliseconds / 60000 AS duration_minutes, \n       t.UnitPrice AS price, \n       a.Title AS album_title, \n       ar.Name AS artist_name\nFROM Track t\nJOIN Album a ON t.AlbumId = a.AlbumId\nJOIN Artist ar ON a.ArtistId = ar.ArtistId\nWHERE t.Milliseconds > 600000 AND t.UnitPrice > 0.99\nORDER BY t.Milliseconds DESC\nLIMIT 20",
+        "raw_output": "SELECT t.Name AS track_name, \n       t.Milliseconds / 60000 AS duration_minutes, \n       t.UnitPrice AS price, \n       a.Title AS album_title, \n       ar.Name AS artist_name\nFROM Track t\nJOIN Album a ON t.AlbumId = a.AlbumId\nJOIN Artist ar ON a.ArtistId = ar.ArtistId\nWHERE t.Milliseconds > 600000 AND t.UnitPrice > 0.99\nORDER BY t.Milliseconds DESC\nLIMIT 20;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 1.7363338470458984
+      },
+      {
+        "case_id": "filter_05",
+        "category": "tricky_filtering",
+        "difficulty": "medium",
+        "natural_language": "Find customers whose email is from a gmail address",
+        "ground_truth_sql": "SELECT FirstName, LastName, Email FROM Customer WHERE Email LIKE '%gmail.com' ORDER BY LastName;",
+        "predicted_sql": "SELECT FirstName, LastName, Email\nFROM Customer\nWHERE Email LIKE '%@gmail.com'\nLIMIT 20",
+        "raw_output": "SELECT FirstName, LastName, Email\nFROM Customer\nWHERE Email LIKE '%@gmail.com'\nLIMIT 20;",
+        "score": 1.0,
+        "reason": "Exact match",
+        "latency": 0.8063149452209473
+      },
+      {
+        "case_id": "join_01",
+        "category": "multi_hop_join",
+        "difficulty": "hard",
+        "natural_language": "How much revenue has each artist generated from sales?",
+        "ground_truth_sql": "SELECT ar.Name AS artist, ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_revenue FROM Artist ar JOIN Album a ON ar.ArtistId = a.ArtistId JOIN Track t ON a.AlbumId = t.AlbumId JOIN InvoiceLine il ON t.TrackId = il.TrackId GROUP BY ar.ArtistId, ar.Name ORDER BY total_revenue DESC LIMIT 15;",
+        "predicted_sql": "-- 4-table join: Artist -> Album -> Track -> InvoiceLine\nSELECT ar.Name AS artist,\n       ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_revenue\nFROM Artist ar\nJOIN Album a ON ar.ArtistId = a.ArtistId\nJOIN Track t ON a.AlbumId = t.AlbumId\nJOIN InvoiceLine il ON t.TrackId = il.TrackId\nGROUP BY ar.ArtistId, ar.Name\nORDER BY total_revenue DESC\nLIMIT 15",
+        "raw_output": "-- 4-table join: Artist -> Album -> Track -> InvoiceLine\nSELECT ar.Name AS artist,\n       ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_revenue\nFROM Artist ar\nJOIN Album a ON ar.ArtistId = a.ArtistId\nJOIN Track t ON a.AlbumId = t.AlbumId\nJOIN InvoiceLine il ON t.TrackId = il.TrackId\nGROUP BY ar.ArtistId, ar.Name\nORDER BY total_revenue DESC\nLIMIT 15;",
+        "score": 1.0,
+        "reason": "Exact match",
+        "latency": 3.4809200763702393
+      },
+      {
+        "case_id": "join_02",
+        "category": "multi_hop_join",
+        "difficulty": "hard",
+        "natural_language": "Show the management hierarchy: each employee and who they report to",
+        "ground_truth_sql": "SELECT e.FirstName || ' ' || e.LastName AS employee, e.Title AS employee_title, COALESCE(m.FirstName || ' ' || m.LastName, 'No Manager') AS manager, COALESCE(m.Title, 'N/A') AS manager_title FROM Employee e LEFT JOIN Employee m ON e.ReportsTo = m.EmployeeId ORDER BY e.EmployeeId;",
+        "predicted_sql": "SELECT e.EmployeeId, e.FirstName || ' ' || e.LastName AS EmployeeName,\n       m.FirstName || ' ' || m.LastName AS ManagerName\nFROM Employee e\nLEFT JOIN Employee m ON e.ReportsTo = m.EmployeeId\nORDER BY e.EmployeeId\nLIMIT 20",
+        "raw_output": "SELECT e.EmployeeId, e.FirstName || ' ' || e.LastName AS EmployeeName,\n       m.FirstName || ' ' || m.LastName AS ManagerName\nFROM Employee e\nLEFT JOIN Employee m ON e.ReportsTo = m.EmployeeId\nORDER BY e.EmployeeId\nLIMIT 20;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 3.3845863342285156
+      },
+      {
+        "case_id": "join_03",
+        "category": "multi_hop_join",
+        "difficulty": "hard",
+        "natural_language": "Which playlists contain tracks by Led Zeppelin?",
+        "ground_truth_sql": "SELECT DISTINCT p.Name AS playlist_name FROM Playlist p JOIN PlaylistTrack pt ON p.PlaylistId = pt.PlaylistId JOIN Track t ON pt.TrackId = t.TrackId JOIN Album a ON t.AlbumId = a.AlbumId JOIN Artist ar ON a.ArtistId = ar.ArtistId WHERE ar.Name = 'Led Zeppelin' ORDER BY p.Name;",
+        "predicted_sql": "-- Note: The database does not directly store information about which artists' tracks are in each playlist.\n-- We need to join Artist, Album, Track, PlaylistTrack, and Playlist tables to find the information.\nSELECT DISTINCT p.Name AS playlist \nFROM Playlist p\nJOIN PlaylistTrack pt ON p.PlaylistId = pt.PlaylistId\nJOIN Track t ON pt.TrackId = t.TrackId\nJOIN Album a ON t.AlbumId = a.AlbumId\nJOIN Artist ar ON a.ArtistId = ar.ArtistId\nWHERE ar.Name = 'Led Zeppelin'\nLIMIT 20",
+        "raw_output": "-- Note: The database does not directly store information about which artists' tracks are in each playlist.\n-- We need to join Artist, Album, Track, PlaylistTrack, and Playlist tables to find the information.\nSELECT DISTINCT p.Name AS playlist \nFROM Playlist p\nJOIN PlaylistTrack pt ON p.PlaylistId = pt.PlaylistId\nJOIN Track t ON pt.TrackId = t.TrackId\nJOIN Album a ON t.AlbumId = a.AlbumId\nJOIN Artist ar ON a.ArtistId = ar.ArtistId\nWHERE ar.Name = 'Led Zeppelin'\nLIMIT 20;",
+        "score": 1.0,
+        "reason": "Exact match",
+        "latency": 3.653231143951416
+      },
+      {
+        "case_id": "join_04",
+        "category": "multi_hop_join",
+        "difficulty": "hard",
+        "natural_language": "List each customer with the total number of tracks they have purchased",
+        "ground_truth_sql": "SELECT c.FirstName || ' ' || c.LastName AS customer, COUNT(il.InvoiceLineId) AS tracks_purchased FROM Customer c JOIN Invoice i ON c.CustomerId = i.CustomerId JOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId GROUP BY c.CustomerId ORDER BY tracks_purchased DESC LIMIT 15;",
+        "predicted_sql": "SELECT c.FirstName || ' ' || c.LastName AS customer_name, COUNT(il.InvoiceLineId) AS total_tracks_purchased\nFROM Customer c\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nJOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId\nGROUP BY c.CustomerId, customer_name\nORDER BY total_tracks_purchased DESC\nLIMIT 20",
+        "raw_output": "SELECT c.FirstName || ' ' || c.LastName AS customer_name, COUNT(il.InvoiceLineId) AS total_tracks_purchased\nFROM Customer c\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nJOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId\nGROUP BY c.CustomerId, customer_name\nORDER BY total_tracks_purchased DESC\nLIMIT 20;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 1.7159509658813477
+      },
+      {
+        "case_id": "join_05",
+        "category": "multi_hop_join",
+        "difficulty": "hard",
+        "natural_language": "Which customers are handled by employees who were hired before 2003?",
+        "ground_truth_sql": "SELECT c.FirstName || ' ' || c.LastName AS customer, c.Country, e.FirstName || ' ' || e.LastName AS support_rep, e.HireDate FROM Customer c JOIN Employee e ON c.SupportRepId = e.EmployeeId WHERE e.HireDate < '2003-01-01' ORDER BY c.LastName;",
+        "predicted_sql": "SELECT c.FirstName AS customer_first_name, \n       c.LastName AS customer_last_name, \n       e.FirstName AS employee_first_name, \n       e.LastName AS employee_last_name\nFROM Customer c\nJOIN Employee e ON c.SupportRepId = e.EmployeeId\nWHERE e.HireDate < '2003-01-01'\nLIMIT 20",
+        "raw_output": "SELECT c.FirstName AS customer_first_name, \n       c.LastName AS customer_last_name, \n       e.FirstName AS employee_first_name, \n       e.LastName AS employee_last_name\nFROM Customer c\nJOIN Employee e ON c.SupportRepId = e.EmployeeId\nWHERE e.HireDate < '2003-01-01'\nLIMIT 20;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 1.6318881511688232
+      },
+      {
+        "case_id": "agg_01",
+        "category": "advanced_aggregation",
+        "difficulty": "hard",
+        "natural_language": "Which genres have generated more revenue than the average genre?",
+        "ground_truth_sql": "SELECT g.Name AS genre, ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS revenue FROM Genre g JOIN Track t ON g.GenreId = t.GenreId JOIN InvoiceLine il ON t.TrackId = il.TrackId GROUP BY g.GenreId, g.Name HAVING SUM(il.UnitPrice * il.Quantity) > (SELECT AVG(genre_rev) FROM (SELECT SUM(il2.UnitPrice * il2.Quantity) AS genre_rev FROM Genre g2 JOIN Track t2 ON g2.GenreId = t2.GenreId JOIN InvoiceLine il2 ON t2.TrackId = il2.TrackId GROUP BY g2.GenreId)) ORDER BY revenue DESC;",
+        "predicted_sql": "SELECT g.Name AS genre, ROUND(total_revenue, 2) AS revenue\nFROM (\n    SELECT g.Name, SUM(il.UnitPrice * il.Quantity) AS total_revenue\n    FROM Genre g\n    JOIN Track t ON g.GenreId = t.GenreId\n    JOIN InvoiceLine il ON t.TrackId = il.TrackId\n    GROUP BY g.GenreId, g.Name\n) AS genre_revenue\nWHERE total_revenue > (\n    SELECT AVG(avg_revenue) FROM (\n        SELECT SUM(il.UnitPrice * il.Quantity) AS avg_revenue\n        FROM Genre g\n        JOIN Track t ON g.GenreId = t.GenreId\n        JOIN InvoiceLine il ON t.TrackId = il.TrackId\n        GROUP BY g.GenreId\n    )\n)\nORDER BY revenue DESC",
+        "raw_output": "SELECT g.Name AS genre, ROUND(total_revenue, 2) AS revenue\nFROM (\n    SELECT g.Name, SUM(il.UnitPrice * il.Quantity) AS total_revenue\n    FROM Genre g\n    JOIN Track t ON g.GenreId = t.GenreId\n    JOIN InvoiceLine il ON t.TrackId = il.TrackId\n    GROUP BY g.GenreId, g.Name\n) AS genre_revenue\nWHERE total_revenue > (\n    SELECT AVG(avg_revenue) FROM (\n        SELECT SUM(il.UnitPrice * il.Quantity) AS avg_revenue\n        FROM Genre g\n        JOIN Track t ON g.GenreId = t.GenreId\n        JOIN InvoiceLine il ON t.TrackId = il.TrackId\n        GROUP BY g.GenreId\n    )\n)\nORDER BY revenue DESC;",
+        "score": 0.0,
+        "reason": "Predicted SQL execution failed",
+        "latency": 10.342688083648682
+      },
+      {
+        "case_id": "agg_02",
+        "category": "advanced_aggregation",
+        "difficulty": "hard",
+        "natural_language": "For each support representative, how many customers do they handle and what is the total revenue from those customers?",
+        "ground_truth_sql": "SELECT e.FirstName || ' ' || e.LastName AS support_rep, COUNT(DISTINCT c.CustomerId) AS customer_count, ROUND(SUM(i.Total), 2) AS total_revenue FROM Employee e JOIN Customer c ON e.EmployeeId = c.SupportRepId JOIN Invoice i ON c.CustomerId = i.CustomerId GROUP BY e.EmployeeId ORDER BY total_revenue DESC;",
+        "predicted_sql": "SELECT e.FirstName || ' ' || e.LastName AS support_rep,\n       COUNT(c.CustomerId) AS customer_count,\n       ROUND(SUM(i.Total), 2) AS total_revenue\nFROM Employee e\nJOIN Customer c ON e.EmployeeId = c.SupportRepId\nLEFT JOIN Invoice i ON c.CustomerId = i.CustomerId\nGROUP BY e.EmployeeId, e.FirstName, e.LastName\nORDER BY total_revenue DESC\nLIMIT 20",
+        "raw_output": "SELECT e.FirstName || ' ' || e.LastName AS support_rep,\n       COUNT(c.CustomerId) AS customer_count,\n       ROUND(SUM(i.Total), 2) AS total_revenue\nFROM Employee e\nJOIN Customer c ON e.EmployeeId = c.SupportRepId\nLEFT JOIN Invoice i ON c.CustomerId = i.CustomerId\nGROUP BY e.EmployeeId, e.FirstName, e.LastName\nORDER BY total_revenue DESC\nLIMIT 20;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 7.560708999633789
+      },
+      {
+        "case_id": "agg_03",
+        "category": "advanced_aggregation",
+        "difficulty": "hard",
+        "natural_language": "What percentage of total revenue does each country contribute?",
+        "ground_truth_sql": "SELECT BillingCountry AS country, ROUND(SUM(Total), 2) AS country_revenue, ROUND(SUM(Total) * 100.0 / (SELECT SUM(Total) FROM Invoice), 2) AS revenue_percentage FROM Invoice GROUP BY BillingCountry ORDER BY country_revenue DESC;",
+        "predicted_sql": "SELECT BillingCountry, \n       ROUND(SUM(Total) * 100.0 / (SELECT SUM(Total) FROM Invoice), 2) AS percentage_of_total_revenue\nFROM Invoice\nGROUP BY BillingCountry\nORDER BY percentage_of_total_revenue DESC",
+        "raw_output": "SELECT BillingCountry, \n       ROUND(SUM(Total) * 100.0 / (SELECT SUM(Total) FROM Invoice), 2) AS percentage_of_total_revenue\nFROM Invoice\nGROUP BY BillingCountry\nORDER BY percentage_of_total_revenue DESC;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 8.387784957885742
+      },
+      {
+        "case_id": "agg_04",
+        "category": "advanced_aggregation",
+        "difficulty": "medium",
+        "natural_language": "How many albums does each artist have, but only show artists with more than 2 albums?",
+        "ground_truth_sql": "SELECT ar.Name AS artist, COUNT(a.AlbumId) AS album_count FROM Artist ar JOIN Album a ON ar.ArtistId = a.ArtistId GROUP BY ar.ArtistId, ar.Name HAVING COUNT(a.AlbumId) > 2 ORDER BY album_count DESC;",
+        "predicted_sql": "SELECT ar.Name AS artist, COUNT(*) AS album_count\nFROM Artist ar\nJOIN Album al ON ar.ArtistId = al.ArtistId\nGROUP BY ar.ArtistId, ar.Name\nHAVING album_count > 2",
+        "raw_output": "SELECT ar.Name AS artist, COUNT(*) AS album_count\nFROM Artist ar\nJOIN Album al ON ar.ArtistId = al.ArtistId\nGROUP BY ar.ArtistId, ar.Name\nHAVING album_count > 2;",
+        "score": 1.0,
+        "reason": "Exact match",
+        "latency": 6.8832409381866455
+      },
+      {
+        "case_id": "agg_05",
+        "category": "advanced_aggregation",
+        "difficulty": "hard",
+        "natural_language": "What is the average number of tracks per album?",
+        "ground_truth_sql": "SELECT ROUND(AVG(track_count), 2) AS avg_tracks_per_album FROM (SELECT AlbumId, COUNT(*) AS track_count FROM Track GROUP BY AlbumId);",
+        "predicted_sql": "SELECT ROUND(AVG(track_count), 2) AS avg_tracks_per_album\nFROM (SELECT AlbumId, COUNT(*) AS track_count FROM Track GROUP BY AlbumId)",
+        "raw_output": "SELECT ROUND(AVG(track_count), 2) AS avg_tracks_per_album\nFROM (SELECT AlbumId, COUNT(*) AS track_count FROM Track GROUP BY AlbumId);",
+        "score": 1.0,
+        "reason": "Exact match",
+        "latency": 7.947140216827393
+      },
+      {
+        "case_id": "advanced_01",
+        "category": "advanced_sql",
+        "difficulty": "hard",
+        "natural_language": "Which customers have spent more than the average customer?",
+        "ground_truth_sql": "SELECT c.FirstName || ' ' || c.LastName AS customer, ROUND(SUM(i.Total), 2) AS total_spent FROM Customer c JOIN Invoice i ON c.CustomerId = i.CustomerId GROUP BY c.CustomerId HAVING SUM(i.Total) > (SELECT AVG(customer_total) FROM (SELECT SUM(Total) AS customer_total FROM Invoice GROUP BY CustomerId)) ORDER BY total_spent DESC;",
+        "predicted_sql": "SELECT c.CustomerId, c.FirstName, c.LastName, ROUND(SUM(i.Total), 2) AS total_spent\nFROM Customer c\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nGROUP BY c.CustomerId, c.FirstName, c.LastName\nHAVING SUM(i.Total) > (SELECT AVG(customer_total) FROM (SELECT SUM(Total) AS customer_total FROM Invoice GROUP BY CustomerId))\nORDER BY total_spent DESC",
+        "raw_output": "SELECT c.CustomerId, c.FirstName, c.LastName, ROUND(SUM(i.Total), 2) AS total_spent\nFROM Customer c\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nGROUP BY c.CustomerId, c.FirstName, c.LastName\nHAVING SUM(i.Total) > (SELECT AVG(customer_total) FROM (SELECT SUM(Total) AS customer_total FROM Invoice GROUP BY CustomerId))\nORDER BY total_spent DESC;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 11.15746021270752
+      },
+      {
+        "case_id": "advanced_02",
+        "category": "advanced_sql",
+        "difficulty": "hard",
+        "natural_language": "Rank the top 3 selling genres in each country",
+        "ground_truth_sql": "SELECT country, genre, tracks_sold, genre_rank FROM (SELECT i.BillingCountry AS country, g.Name AS genre, COUNT(il.InvoiceLineId) AS tracks_sold, ROW_NUMBER() OVER (PARTITION BY i.BillingCountry ORDER BY COUNT(il.InvoiceLineId) DESC) AS genre_rank FROM Invoice i JOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId JOIN Track t ON il.TrackId = t.TrackId JOIN Genre g ON t.GenreId = g.GenreId GROUP BY i.BillingCountry, g.GenreId, g.Name) WHERE genre_rank <= 3 ORDER BY country, genre_rank;",
+        "predicted_sql": "SELECT c.Country, g.Name AS genre, \n       ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_sales\nFROM InvoiceLine il\nJOIN Invoice i ON il.InvoiceId = i.InvoiceId\nJOIN Customer c ON i.CustomerId = c.CustomerId\nJOIN Track t ON il.TrackId = t.TrackId\nJOIN Genre g ON t.GenreId = g.GenreId\nGROUP BY c.Country, g.GenreId, g.Name\nORDER BY c.Country, total_sales DESC\nLIMIT 3",
+        "raw_output": "SELECT c.Country, g.Name AS genre, \n       ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_sales\nFROM InvoiceLine il\nJOIN Invoice i ON il.InvoiceId = i.InvoiceId\nJOIN Customer c ON i.CustomerId = c.CustomerId\nJOIN Track t ON il.TrackId = t.TrackId\nJOIN Genre g ON t.GenreId = g.GenreId\nGROUP BY c.Country, g.GenreId, g.Name\nORDER BY c.Country, total_sales DESC\nLIMIT 3;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 7.160798072814941
+      },
+      {
+        "case_id": "advanced_03",
+        "category": "advanced_sql",
+        "difficulty": "hard",
+        "natural_language": "Which genres have never been sold to any customer?",
+        "ground_truth_sql": "SELECT g.Name AS genre FROM Genre g WHERE g.GenreId NOT IN (SELECT DISTINCT t.GenreId FROM Track t JOIN InvoiceLine il ON t.TrackId = il.TrackId WHERE t.GenreId IS NOT NULL) ORDER BY g.Name;",
+        "predicted_sql": "SELECT g.Name AS genre\nFROM Genre g\nLEFT JOIN Track t ON g.GenreId = t.GenreId\nLEFT JOIN InvoiceLine il ON t.TrackId = il.TrackId\nWHERE il.InvoiceLineId IS NULL",
+        "raw_output": "SELECT g.Name AS genre\nFROM Genre g\nLEFT JOIN Track t ON g.GenreId = t.GenreId\nLEFT JOIN InvoiceLine il ON t.TrackId = il.TrackId\nWHERE il.InvoiceLineId IS NULL;",
+        "score": 1.0,
+        "reason": "Full value overlap",
+        "latency": 6.656573057174683
+      },
+      {
+        "case_id": "advanced_04",
+        "category": "advanced_sql",
+        "difficulty": "hard",
+        "natural_language": "Find customers who have made purchases in every year that has invoice data",
+        "ground_truth_sql": "SELECT c.FirstName || ' ' || c.LastName AS customer FROM Customer c JOIN Invoice i ON c.CustomerId = i.CustomerId GROUP BY c.CustomerId HAVING COUNT(DISTINCT STRFTIME('%Y', i.InvoiceDate)) = (SELECT COUNT(DISTINCT STRFTIME('%Y', InvoiceDate)) FROM Invoice) ORDER BY customer;",
+        "predicted_sql": "-- Note: This query finds customers who have made purchases in every year with available invoice data (2021-2025).\nWITH DistinctYears AS (\n    SELECT DISTINCT strftime('%Y', InvoiceDate) AS Year\n    FROM Invoice\n),\nCustomerYears AS (\n    SELECT c.CustomerId, strftime('%Y', i.InvoiceDate) AS Year\n    FROM Customer c\n    JOIN Invoice i ON c.CustomerId = i.CustomerId\n    GROUP BY c.CustomerId, Year\n),\nYearCount AS (\n    SELECT COUNT(*) AS TotalYears\n    FROM DistinctYears\n)\nSELECT c.CustomerId, c.FirstName, c.LastName\nFROM Customer c\nJOIN CustomerYears cy ON c.CustomerId = cy.CustomerId\nGROUP BY c.CustomerId\nHAVING COUNT(DISTINCT cy.Year) = (SELECT TotalYears FROM YearCount)",
+        "raw_output": "```sql\n-- Note: This query finds customers who have made purchases in every year with available invoice data (2021-2025).\nWITH DistinctYears AS (\n    SELECT DISTINCT strftime('%Y', InvoiceDate) AS Year\n    FROM Invoice\n),\nCustomerYears AS (\n    SELECT c.CustomerId, strftime('%Y', i.InvoiceDate) AS Year\n    FROM Customer c\n    JOIN Invoice i ON c.CustomerId = i.CustomerId\n    GROUP BY c.CustomerId, Year\n),\nYearCount AS (\n    SELECT COUNT(*) AS TotalYears\n    FROM DistinctYears\n)\nSELECT c.CustomerId, c.FirstName, c.LastName\nFROM Customer c\nJOIN CustomerYears cy ON c.CustomerId = cy.CustomerId\nGROUP BY c.CustomerId\nHAVING COUNT(DISTINCT cy.Year) = (SELECT TotalYears FROM YearCount);\n```",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 8.446932792663574
+      },
+      {
+        "case_id": "advanced_05",
+        "category": "advanced_sql",
+        "difficulty": "hard",
+        "natural_language": "Show each customer's most recent invoice date and the total amount of that invoice",
+        "ground_truth_sql": "SELECT c.FirstName || ' ' || c.LastName AS customer, i.InvoiceDate AS most_recent_date, i.Total AS invoice_total FROM Customer c JOIN Invoice i ON c.CustomerId = i.CustomerId WHERE i.InvoiceDate = (SELECT MAX(i2.InvoiceDate) FROM Invoice i2 WHERE i2.CustomerId = c.CustomerId) ORDER BY most_recent_date DESC LIMIT 15;",
+        "predicted_sql": "SELECT c.CustomerId, c.FirstName, c.LastName, i.InvoiceDate, i.Total\nFROM Customer c\nJOIN (\n    SELECT CustomerId, MAX(InvoiceDate) AS MaxInvoiceDate\n    FROM Invoice\n    GROUP BY CustomerId\n) AS max_invoices ON c.CustomerId = max_invoices.CustomerId\nJOIN Invoice i ON max_invoices.CustomerId = i.CustomerId AND max_invoices.MaxInvoiceDate = i.InvoiceDate\nORDER BY c.CustomerId\nLIMIT 20",
+        "raw_output": "SELECT c.CustomerId, c.FirstName, c.LastName, i.InvoiceDate, i.Total\nFROM Customer c\nJOIN (\n    SELECT CustomerId, MAX(InvoiceDate) AS MaxInvoiceDate\n    FROM Invoice\n    GROUP BY CustomerId\n) AS max_invoices ON c.CustomerId = max_invoices.CustomerId\nJOIN Invoice i ON max_invoices.CustomerId = i.CustomerId AND max_invoices.MaxInvoiceDate = i.InvoiceDate\nORDER BY c.CustomerId\nLIMIT 20;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 8.693412065505981
+      },
+      {
+        "case_id": "messy_01",
+        "category": "messy_adversarial",
+        "difficulty": "hard",
+        "natural_language": "shwo me the top sellin artsts and how much there albums made",
+        "ground_truth_sql": "SELECT ar.Name AS artist, COUNT(DISTINCT a.AlbumId) AS album_count, ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_revenue FROM Artist ar JOIN Album a ON ar.ArtistId = a.ArtistId JOIN Track t ON a.AlbumId = t.AlbumId JOIN InvoiceLine il ON t.TrackId = il.TrackId GROUP BY ar.ArtistId, ar.Name ORDER BY total_revenue DESC LIMIT 10;",
+        "predicted_sql": "SELECT ar.Name AS artist,\n       ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_revenue\nFROM Artist ar\nJOIN Album a ON ar.ArtistId = a.ArtistId\nJOIN Track t ON a.AlbumId = t.AlbumId\nJOIN InvoiceLine il ON t.TrackId = il.TrackId\nGROUP BY ar.ArtistId, ar.Name\nORDER BY total_revenue DESC\nLIMIT 20",
+        "raw_output": "SELECT ar.Name AS artist,\n       ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_revenue\nFROM Artist ar\nJOIN Album a ON ar.ArtistId = a.ArtistId\nJOIN Track t ON a.AlbumId = t.AlbumId\nJOIN InvoiceLine il ON t.TrackId = il.TrackId\nGROUP BY ar.ArtistId, ar.Name\nORDER BY total_revenue DESC\nLIMIT 20;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 6.44608211517334
+      },
+      {
+        "case_id": "messy_02",
+        "category": "messy_adversarial",
+        "difficulty": "hard",
+        "natural_language": "trakcs that nobdy has purchsed",
+        "ground_truth_sql": "SELECT t.Name AS track_name, ar.Name AS artist, g.Name AS genre FROM Track t JOIN Album a ON t.AlbumId = a.AlbumId JOIN Artist ar ON a.ArtistId = ar.ArtistId LEFT JOIN Genre g ON t.GenreId = g.GenreId WHERE t.TrackId NOT IN (SELECT DISTINCT TrackId FROM InvoiceLine) ORDER BY ar.Name, t.Name LIMIT 20;",
+        "predicted_sql": "SELECT t.Name AS track, a.Title AS album, ar.Name AS artist\nFROM Track t\nJOIN Album a ON t.AlbumId = a.AlbumId\nJOIN Artist ar ON a.ArtistId = ar.ArtistId\nLEFT JOIN InvoiceLine il ON t.TrackId = il.TrackId\nWHERE il.InvoiceLineId IS NULL\nLIMIT 20",
+        "raw_output": "```sql\nSELECT t.Name AS track, a.Title AS album, ar.Name AS artist\nFROM Track t\nJOIN Album a ON t.AlbumId = a.AlbumId\nJOIN Artist ar ON a.ArtistId = ar.ArtistId\nLEFT JOIN InvoiceLine il ON t.TrackId = il.TrackId\nWHERE il.InvoiceLineId IS NULL\nLIMIT 20;\n```",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 7.9634928703308105
+      },
+      {
+        "case_id": "messy_03",
+        "category": "messy_adversarial",
+        "difficulty": "hard",
+        "natural_language": "gimme all rock n metal songs with there lenghts in minuts",
+        "ground_truth_sql": "SELECT t.Name AS track_name, g.Name AS genre, ar.Name AS artist, ROUND(t.Milliseconds / 60000.0, 2) AS duration_minutes FROM Track t JOIN Genre g ON t.GenreId = g.GenreId JOIN Album a ON t.AlbumId = a.AlbumId JOIN Artist ar ON a.ArtistId = ar.ArtistId WHERE g.Name IN ('Rock', 'Metal') ORDER BY g.Name, t.Name LIMIT 20;",
+        "predicted_sql": "SELECT t.Name AS track_name, \n       ROUND(t.Milliseconds / 60000.0, 2) AS duration_minutes,\n       g.Name AS genre\nFROM Track t\nJOIN Genre g ON t.GenreId = g.GenreId\nWHERE g.Name IN ('Rock', 'Metal')\nORDER BY t.Name\nLIMIT 20",
+        "raw_output": "SELECT t.Name AS track_name, \n       ROUND(t.Milliseconds / 60000.0, 2) AS duration_minutes,\n       g.Name AS genre\nFROM Track t\nJOIN Genre g ON t.GenreId = g.GenreId\nWHERE g.Name IN ('Rock', 'Metal')\nORDER BY t.Name\nLIMIT 20;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 8.990738868713379
+      },
+      {
+        "case_id": "messy_04",
+        "category": "messy_adversarial",
+        "difficulty": "hard",
+        "natural_language": "employes who dont manege anyone",
+        "ground_truth_sql": "SELECT e.FirstName || ' ' || e.LastName AS employee, e.Title FROM Employee e WHERE e.EmployeeId NOT IN (SELECT DISTINCT ReportsTo FROM Employee WHERE ReportsTo IS NOT NULL) ORDER BY e.LastName;",
+        "predicted_sql": "SELECT e.EmployeeId, e.FirstName, e.LastName, e.Title\nFROM Employee e\nWHERE e.EmployeeId NOT IN (SELECT DISTINCT ReportsTo FROM Employee WHERE ReportsTo IS NOT NULL)\nLIMIT 20",
+        "raw_output": "SELECT e.EmployeeId, e.FirstName, e.LastName, e.Title\nFROM Employee e\nWHERE e.EmployeeId NOT IN (SELECT DISTINCT ReportsTo FROM Employee WHERE ReportsTo IS NOT NULL)\nLIMIT 20;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 6.77741003036499
+      },
+      {
+        "case_id": "messy_05",
+        "category": "messy_adversarial",
+        "difficulty": "medium",
+        "natural_language": "avg invioce amnt per counrty sortd high to low",
+        "ground_truth_sql": "SELECT BillingCountry AS country, ROUND(AVG(Total), 2) AS avg_invoice FROM Invoice GROUP BY BillingCountry ORDER BY avg_invoice DESC;",
+        "predicted_sql": "SELECT BillingCountry AS country, \n       ROUND(AVG(Total), 2) AS avg_invoice_amount\nFROM Invoice\nGROUP BY BillingCountry\nORDER BY avg_invoice_amount DESC",
+        "raw_output": "SELECT BillingCountry AS country, \n       ROUND(AVG(Total), 2) AS avg_invoice_amount\nFROM Invoice\nGROUP BY BillingCountry\nORDER BY avg_invoice_amount DESC;",
+        "score": 1.0,
+        "reason": "Exact match",
+        "latency": 8.649351835250854
+      },
+      {
+        "case_id": "non_eng_01",
+        "category": "non_english_complex",
+        "difficulty": "hard",
+        "natural_language": "哪些藝人的專輯數量超過三張？列出藝人名稱和專輯數",
+        "ground_truth_sql": "SELECT ar.Name AS artist, COUNT(a.AlbumId) AS album_count FROM Artist ar JOIN Album a ON ar.ArtistId = a.ArtistId GROUP BY ar.ArtistId, ar.Name HAVING COUNT(a.AlbumId) > 3 ORDER BY album_count DESC;",
+        "predicted_sql": "SELECT ar.Name AS artist_name, COUNT(*) AS album_count\nFROM Artist ar\nJOIN Album al ON ar.ArtistId = al.ArtistId\nGROUP BY ar.ArtistId, ar.Name\nHAVING COUNT(*) > 3",
+        "raw_output": "SELECT ar.Name AS artist_name, COUNT(*) AS album_count\nFROM Artist ar\nJOIN Album al ON ar.ArtistId = al.ArtistId\nGROUP BY ar.ArtistId, ar.Name\nHAVING COUNT(*) > 3;",
+        "score": 1.0,
+        "reason": "Exact match",
+        "latency": 8.474518060684204
+      },
+      {
+        "case_id": "non_eng_02",
+        "category": "non_english_complex",
+        "difficulty": "hard",
+        "natural_language": "各ジャンルの売上金額トップ5を国別に表示してください",
+        "ground_truth_sql": "SELECT g.Name AS genre, ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_sales FROM Genre g JOIN Track t ON g.GenreId = t.GenreId JOIN InvoiceLine il ON t.TrackId = il.TrackId GROUP BY g.GenreId, g.Name ORDER BY total_sales DESC LIMIT 5;",
+        "predicted_sql": "SELECT g.Name AS genre, inv.BillingCountry AS country,\n       ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_sales\nFROM InvoiceLine il\nJOIN Invoice inv ON il.InvoiceId = inv.InvoiceId\nJOIN Track t ON il.TrackId = t.TrackId\nJOIN Genre g ON t.GenreId = g.GenreId\nGROUP BY g.GenreId, g.Name, inv.BillingCountry\nORDER BY g.Name, total_sales DESC\nLIMIT 5",
+        "raw_output": "SELECT g.Name AS genre, inv.BillingCountry AS country,\n       ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_sales\nFROM InvoiceLine il\nJOIN Invoice inv ON il.InvoiceId = inv.InvoiceId\nJOIN Track t ON il.TrackId = t.TrackId\nJOIN Genre g ON t.GenreId = g.GenreId\nGROUP BY g.GenreId, g.Name, inv.BillingCountry\nORDER BY g.Name, total_sales DESC\nLIMIT 5;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 2.0883429050445557
+      },
+      {
+        "case_id": "non_eng_03",
+        "category": "non_english_complex",
+        "difficulty": "hard",
+        "natural_language": "Welche Kunden haben insgesamt mehr als 45 Dollar ausgegeben?",
+        "ground_truth_sql": "SELECT c.FirstName || ' ' || c.LastName AS customer, ROUND(SUM(i.Total), 2) AS total_spent FROM Customer c JOIN Invoice i ON c.CustomerId = i.CustomerId GROUP BY c.CustomerId HAVING SUM(i.Total) > 45 ORDER BY total_spent DESC;",
+        "predicted_sql": "SELECT c.FirstName || ' ' || c.LastName AS customer_name, \n       SUM(i.Total) AS total_spent\nFROM Customer c\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nGROUP BY c.CustomerId, customer_name\nHAVING SUM(i.Total) > 45\nLIMIT 20",
+        "raw_output": "SELECT c.FirstName || ' ' || c.LastName AS customer_name, \n       SUM(i.Total) AS total_spent\nFROM Customer c\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nGROUP BY c.CustomerId, customer_name\nHAVING SUM(i.Total) > 45\nLIMIT 20;",
+        "score": 1.0,
+        "reason": "Exact match",
+        "latency": 13.582988977432251
+      },
+      {
+        "case_id": "non_eng_04",
+        "category": "non_english_complex",
+        "difficulty": "hard",
+        "natural_language": "找出每位員工負責的客戶中，消費總額最高的客戶是誰",
+        "ground_truth_sql": "SELECT e.FirstName || ' ' || e.LastName AS support_rep, c.FirstName || ' ' || c.LastName AS top_customer, ROUND(customer_spending.total_spent, 2) AS total_spent FROM Employee e JOIN Customer c ON e.EmployeeId = c.SupportRepId JOIN (SELECT CustomerId, SUM(Total) AS total_spent FROM Invoice GROUP BY CustomerId) AS customer_spending ON c.CustomerId = customer_spending.CustomerId WHERE customer_spending.total_spent = (SELECT MAX(cs2.total_spent) FROM Customer c2 JOIN (SELECT CustomerId, SUM(Total) AS total_spent FROM Invoice GROUP BY CustomerId) AS cs2 ON c2.CustomerId = cs2.CustomerId WHERE c2.SupportRepId = e.EmployeeId) ORDER BY e.LastName;",
+        "predicted_sql": "SELECT e.FirstName || ' ' || e.LastName AS employee_name,\n       c.FirstName || ' ' || c.LastName AS customer_name,\n       MAX(customer_total.total) AS highest_total\nFROM Employee e\nJOIN Customer c ON e.EmployeeId = c.SupportRepId\nJOIN (SELECT i.CustomerId, SUM(i.Total) AS total\n      FROM Invoice i\n      GROUP BY i.CustomerId) AS customer_total ON c.CustomerId = customer_total.CustomerId\nGROUP BY e.EmployeeId, employee_name, c.CustomerId, customer_name\nHAVING total = MAX(customer_total.total)\nORDER BY employee_name",
+        "raw_output": "SELECT e.FirstName || ' ' || e.LastName AS employee_name,\n       c.FirstName || ' ' || c.LastName AS customer_name,\n       MAX(customer_total.total) AS highest_total\nFROM Employee e\nJOIN Customer c ON e.EmployeeId = c.SupportRepId\nJOIN (SELECT i.CustomerId, SUM(i.Total) AS total\n      FROM Invoice i\n      GROUP BY i.CustomerId) AS customer_total ON c.CustomerId = customer_total.CustomerId\nGROUP BY e.EmployeeId, employee_name, c.CustomerId, customer_name\nHAVING total = MAX(customer_total.total)\nORDER BY employee_name;",
+        "score": 1.0,
+        "reason": "Full value overlap",
+        "latency": 8.682080745697021
+      },
+      {
+        "case_id": "non_eng_05",
+        "category": "non_english_complex",
+        "difficulty": "hard",
+        "natural_language": "Quels sont les 3 genres les plus vendus en France ?",
+        "ground_truth_sql": "SELECT g.Name AS genre, COUNT(il.InvoiceLineId) AS tracks_sold FROM Genre g JOIN Track t ON g.GenreId = t.GenreId JOIN InvoiceLine il ON t.TrackId = il.TrackId JOIN Invoice i ON il.InvoiceId = i.InvoiceId WHERE i.BillingCountry = 'France' GROUP BY g.GenreId, g.Name ORDER BY tracks_sold DESC LIMIT 3;",
+        "predicted_sql": "SELECT g.Name AS genre, ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_sales\nFROM InvoiceLine il\nJOIN Invoice i ON il.InvoiceId = i.InvoiceId\nJOIN Track t ON il.TrackId = t.TrackId\nJOIN Genre g ON t.GenreId = g.GenreId\nWHERE i.BillingCountry = 'France'\nGROUP BY g.GenreId, g.Name\nORDER BY total_sales DESC\nLIMIT 3",
+        "raw_output": "```sql\nSELECT g.Name AS genre, ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_sales\nFROM InvoiceLine il\nJOIN Invoice i ON il.InvoiceId = i.InvoiceId\nJOIN Track t ON il.TrackId = t.TrackId\nJOIN Genre g ON t.GenreId = g.GenreId\nWHERE i.BillingCountry = 'France'\nGROUP BY g.GenreId, g.Name\nORDER BY total_sales DESC\nLIMIT 3;\n```",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 7.599000930786133
+      }
+    ],
+    "errors": [
+      {
+        "case_id": "filter_01",
+        "category": "tricky_filtering",
+        "question": "Find all tracks that have no composer listed",
+        "predicted_sql": "SELECT t.Name AS track_name\nFROM Track t\nWHERE t.Composer IS NULL\nLIMIT 20",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "filter_02",
+        "category": "tricky_filtering",
+        "question": "Which customers do not have a company?",
+        "predicted_sql": "SELECT CustomerId, FirstName, LastName, Email\nFROM Customer\nWHERE Company IS NULL\nLIMIT 20",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "filter_03",
+        "category": "tricky_filtering",
+        "question": "List all invoices from the first quarter of 2025",
+        "predicted_sql": "SELECT InvoiceId, CustomerId, InvoiceDate, Total\nFROM Invoice\nWHERE InvoiceDate BETWEEN '2025-01-01' AND '2025-03-31'\nORDER BY InvoiceDate\nLIMIT 20",
+        "score": 0.8947368421052632,
+        "reason": "Partial match: 89.5% overlap"
+      },
+      {
+        "case_id": "filter_04",
+        "category": "tricky_filtering",
+        "question": "Show tracks that are longer than 10 minutes and cost more than $0.99",
+        "predicted_sql": "SELECT t.Name AS track_name, \n       t.Milliseconds / 60000 AS duration_minutes, \n       t.UnitPrice AS price, \n       a.Title AS album_title, \n       ar.Name AS artist_name\nFROM Track t\nJOIN Album a ",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "join_02",
+        "category": "multi_hop_join",
+        "question": "Show the management hierarchy: each employee and who they report to",
+        "predicted_sql": "SELECT e.EmployeeId, e.FirstName || ' ' || e.LastName AS EmployeeName,\n       m.FirstName || ' ' || m.LastName AS ManagerName\nFROM Employee e\nLEFT JOIN Employee m ON e.ReportsTo = m.EmployeeId\nORDER B",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "join_04",
+        "category": "multi_hop_join",
+        "question": "List each customer with the total number of tracks they have purchased",
+        "predicted_sql": "SELECT c.FirstName || ' ' || c.LastName AS customer_name, COUNT(il.InvoiceLineId) AS total_tracks_purchased\nFROM Customer c\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nJOIN InvoiceLine il ON i.Invoi",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "join_05",
+        "category": "multi_hop_join",
+        "question": "Which customers are handled by employees who were hired before 2003?",
+        "predicted_sql": "SELECT c.FirstName AS customer_first_name, \n       c.LastName AS customer_last_name, \n       e.FirstName AS employee_first_name, \n       e.LastName AS employee_last_name\nFROM Customer c\nJOIN Employee ",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "agg_01",
+        "category": "advanced_aggregation",
+        "question": "Which genres have generated more revenue than the average genre?",
+        "predicted_sql": "SELECT g.Name AS genre, ROUND(total_revenue, 2) AS revenue\nFROM (\n    SELECT g.Name, SUM(il.UnitPrice * il.Quantity) AS total_revenue\n    FROM Genre g\n    JOIN Track t ON g.GenreId = t.GenreId\n    JOI",
+        "score": 0.0,
+        "reason": "Predicted SQL execution failed"
+      },
+      {
+        "case_id": "agg_02",
+        "category": "advanced_aggregation",
+        "question": "For each support representative, how many customers do they handle and what is the total revenue from those customers?",
+        "predicted_sql": "SELECT e.FirstName || ' ' || e.LastName AS support_rep,\n       COUNT(c.CustomerId) AS customer_count,\n       ROUND(SUM(i.Total), 2) AS total_revenue\nFROM Employee e\nJOIN Customer c ON e.EmployeeId = c",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "agg_03",
+        "category": "advanced_aggregation",
+        "question": "What percentage of total revenue does each country contribute?",
+        "predicted_sql": "SELECT BillingCountry, \n       ROUND(SUM(Total) * 100.0 / (SELECT SUM(Total) FROM Invoice), 2) AS percentage_of_total_revenue\nFROM Invoice\nGROUP BY BillingCountry\nORDER BY percentage_of_total_revenue ",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "advanced_01",
+        "category": "advanced_sql",
+        "question": "Which customers have spent more than the average customer?",
+        "predicted_sql": "SELECT c.CustomerId, c.FirstName, c.LastName, ROUND(SUM(i.Total), 2) AS total_spent\nFROM Customer c\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nGROUP BY c.CustomerId, c.FirstName, c.LastName\nHAVING ",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "advanced_02",
+        "category": "advanced_sql",
+        "question": "Rank the top 3 selling genres in each country",
+        "predicted_sql": "SELECT c.Country, g.Name AS genre, \n       ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_sales\nFROM InvoiceLine il\nJOIN Invoice i ON il.InvoiceId = i.InvoiceId\nJOIN Customer c ON i.CustomerId = c",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "advanced_04",
+        "category": "advanced_sql",
+        "question": "Find customers who have made purchases in every year that has invoice data",
+        "predicted_sql": "-- Note: This query finds customers who have made purchases in every year with available invoice data (2021-2025).\nWITH DistinctYears AS (\n    SELECT DISTINCT strftime('%Y', InvoiceDate) AS Year\n    F",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "advanced_05",
+        "category": "advanced_sql",
+        "question": "Show each customer's most recent invoice date and the total amount of that invoice",
+        "predicted_sql": "SELECT c.CustomerId, c.FirstName, c.LastName, i.InvoiceDate, i.Total\nFROM Customer c\nJOIN (\n    SELECT CustomerId, MAX(InvoiceDate) AS MaxInvoiceDate\n    FROM Invoice\n    GROUP BY CustomerId\n) AS max_",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "messy_01",
+        "category": "messy_adversarial",
+        "question": "shwo me the top sellin artsts and how much there albums made",
+        "predicted_sql": "SELECT ar.Name AS artist,\n       ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_revenue\nFROM Artist ar\nJOIN Album a ON ar.ArtistId = a.ArtistId\nJOIN Track t ON a.AlbumId = t.AlbumId\nJOIN InvoiceLi",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "messy_02",
+        "category": "messy_adversarial",
+        "question": "trakcs that nobdy has purchsed",
+        "predicted_sql": "SELECT t.Name AS track, a.Title AS album, ar.Name AS artist\nFROM Track t\nJOIN Album a ON t.AlbumId = a.AlbumId\nJOIN Artist ar ON a.ArtistId = ar.ArtistId\nLEFT JOIN InvoiceLine il ON t.TrackId = il.Tra",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "messy_03",
+        "category": "messy_adversarial",
+        "question": "gimme all rock n metal songs with there lenghts in minuts",
+        "predicted_sql": "SELECT t.Name AS track_name, \n       ROUND(t.Milliseconds / 60000.0, 2) AS duration_minutes,\n       g.Name AS genre\nFROM Track t\nJOIN Genre g ON t.GenreId = g.GenreId\nWHERE g.Name IN ('Rock', 'Metal')",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "messy_04",
+        "category": "messy_adversarial",
+        "question": "employes who dont manege anyone",
+        "predicted_sql": "SELECT e.EmployeeId, e.FirstName, e.LastName, e.Title\nFROM Employee e\nWHERE e.EmployeeId NOT IN (SELECT DISTINCT ReportsTo FROM Employee WHERE ReportsTo IS NOT NULL)\nLIMIT 20",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "non_eng_02",
+        "category": "non_english_complex",
+        "question": "各ジャンルの売上金額トップ5を国別に表示してください",
+        "predicted_sql": "SELECT g.Name AS genre, inv.BillingCountry AS country,\n       ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_sales\nFROM InvoiceLine il\nJOIN Invoice inv ON il.InvoiceId = inv.InvoiceId\nJOIN Track t",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "non_eng_05",
+        "category": "non_english_complex",
+        "question": "Quels sont les 3 genres les plus vendus en France ?",
+        "predicted_sql": "SELECT g.Name AS genre, ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_sales\nFROM InvoiceLine il\nJOIN Invoice i ON il.InvoiceId = i.InvoiceId\nJOIN Track t ON il.TrackId = t.TrackId\nJOIN Genre g ON",
+        "score": 0.0,
+        "reason": "No match"
+      }
+    ]
+  },
+  "deepseek-v3": {
+    "accuracy": 0.36666666666666664,
+    "correct": 11,
+    "total": 30,
+    "threshold_pass": false,
+    "category_breakdown": {
+      "tricky_filtering": {
+        "accuracy": 0.4,
+        "correct": 2,
+        "total": 5
+      },
+      "multi_hop_join": {
+        "accuracy": 0.4,
+        "correct": 2,
+        "total": 5
+      },
+      "advanced_aggregation": {
+        "accuracy": 0.6,
+        "correct": 3,
+        "total": 5
+      },
+      "advanced_sql": {
+        "accuracy": 0.2,
+        "correct": 1,
+        "total": 5
+      },
+      "messy_adversarial": {
+        "accuracy": 0.2,
+        "correct": 1,
+        "total": 5
+      },
+      "non_english_complex": {
+        "accuracy": 0.4,
+        "correct": 2,
+        "total": 5
+      }
+    },
+    "avg_latency": 2.0214856386184694,
+    "results": [
+      {
+        "case_id": "filter_01",
+        "category": "tricky_filtering",
+        "difficulty": "medium",
+        "natural_language": "Find all tracks that have no composer listed",
+        "ground_truth_sql": "SELECT t.Name AS track_name, a.Title AS album FROM Track t JOIN Album a ON t.AlbumId = a.AlbumId WHERE t.Composer IS NULL ORDER BY t.Name LIMIT 20;",
+        "predicted_sql": "SELECT TrackId, Name, AlbumId, MediaTypeId, GenreId, Composer, Milliseconds, Bytes, UnitPrice\nFROM Track\nWHERE Composer IS NULL\nORDER BY Name",
+        "raw_output": "SELECT TrackId, Name, AlbumId, MediaTypeId, GenreId, Composer, Milliseconds, Bytes, UnitPrice\nFROM Track\nWHERE Composer IS NULL\nORDER BY Name;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 1.1550219058990479
+      },
+      {
+        "case_id": "filter_02",
+        "category": "tricky_filtering",
+        "difficulty": "medium",
+        "natural_language": "Which customers do not have a company?",
+        "ground_truth_sql": "SELECT FirstName, LastName, Email, Country FROM Customer WHERE Company IS NULL ORDER BY LastName;",
+        "predicted_sql": "SELECT CustomerId, FirstName, LastName, Email, City, Country\nFROM Customer\nWHERE Company IS NULL\nORDER BY LastName, FirstName\nLIMIT 20",
+        "raw_output": "SELECT CustomerId, FirstName, LastName, Email, City, Country\nFROM Customer\nWHERE Company IS NULL\nORDER BY LastName, FirstName\nLIMIT 20;",
+        "score": 0.40816326530612246,
+        "reason": "Partial match: 40.8% overlap",
+        "latency": 1.2623698711395264
+      },
+      {
+        "case_id": "filter_03",
+        "category": "tricky_filtering",
+        "difficulty": "medium",
+        "natural_language": "List all invoices from the first quarter of 2025",
+        "ground_truth_sql": "SELECT InvoiceId, CustomerId, InvoiceDate, Total FROM Invoice WHERE InvoiceDate >= '2025-01-01' AND InvoiceDate < '2025-04-01' ORDER BY InvoiceDate;",
+        "predicted_sql": "SELECT \n    i.InvoiceId,\n    i.CustomerId,\n    i.InvoiceDate,\n    i.BillingAddress,\n    i.BillingCity,\n    i.BillingState,\n    i.BillingCountry,\n    i.BillingPostalCode,\n    i.Total\nFROM Invoice i\nWHERE i.InvoiceDate >= '2025-01-01' AND i.InvoiceDate < '2025-04-01'\nORDER BY i.InvoiceDate",
+        "raw_output": "SELECT \n    i.InvoiceId,\n    i.CustomerId,\n    i.InvoiceDate,\n    i.BillingAddress,\n    i.BillingCity,\n    i.BillingState,\n    i.BillingCountry,\n    i.BillingPostalCode,\n    i.Total\nFROM Invoice i\nWHERE i.InvoiceDate >= '2025-01-01' AND i.InvoiceDate < '2025-04-01'\nORDER BY i.InvoiceDate;",
+        "score": 1.0,
+        "reason": "Subset match (model returned extra columns)",
+        "latency": 1.8080980777740479
+      },
+      {
+        "case_id": "filter_04",
+        "category": "tricky_filtering",
+        "difficulty": "medium",
+        "natural_language": "Show tracks that are longer than 10 minutes and cost more than $0.99",
+        "ground_truth_sql": "SELECT t.Name AS track_name, ar.Name AS artist, ROUND(t.Milliseconds / 60000.0, 2) AS duration_minutes, t.UnitPrice FROM Track t JOIN Album a ON t.AlbumId = a.AlbumId JOIN Artist ar ON a.ArtistId = ar.ArtistId WHERE t.Milliseconds > 600000 AND t.UnitPrice > 0.99 ORDER BY t.Milliseconds DESC;",
+        "predicted_sql": "SELECT t.TrackId, t.Name, t.Milliseconds / 1000 AS duration_seconds, t.UnitPrice\nFROM Track t\nWHERE t.Milliseconds > 600000\n  AND t.UnitPrice > 0.99\nORDER BY t.Milliseconds DESC\nLIMIT 20",
+        "raw_output": "SELECT t.TrackId, t.Name, t.Milliseconds / 1000 AS duration_seconds, t.UnitPrice\nFROM Track t\nWHERE t.Milliseconds > 600000\n  AND t.UnitPrice > 0.99\nORDER BY t.Milliseconds DESC\nLIMIT 20;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 1.4752156734466553
+      },
+      {
+        "case_id": "filter_05",
+        "category": "tricky_filtering",
+        "difficulty": "medium",
+        "natural_language": "Find customers whose email is from a gmail address",
+        "ground_truth_sql": "SELECT FirstName, LastName, Email FROM Customer WHERE Email LIKE '%gmail.com' ORDER BY LastName;",
+        "predicted_sql": "SELECT CustomerId, FirstName, LastName, Email\nFROM Customer\nWHERE Email LIKE '%@gmail.com'\nORDER BY LastName, FirstName\nLIMIT 20",
+        "raw_output": "SELECT CustomerId, FirstName, LastName, Email\nFROM Customer\nWHERE Email LIKE '%@gmail.com'\nORDER BY LastName, FirstName\nLIMIT 20;",
+        "score": 1.0,
+        "reason": "Subset match (model returned extra columns)",
+        "latency": 1.5987741947174072
+      },
+      {
+        "case_id": "join_01",
+        "category": "multi_hop_join",
+        "difficulty": "hard",
+        "natural_language": "How much revenue has each artist generated from sales?",
+        "ground_truth_sql": "SELECT ar.Name AS artist, ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_revenue FROM Artist ar JOIN Album a ON ar.ArtistId = a.ArtistId JOIN Track t ON a.AlbumId = t.AlbumId JOIN InvoiceLine il ON t.TrackId = il.TrackId GROUP BY ar.ArtistId, ar.Name ORDER BY total_revenue DESC LIMIT 15;",
+        "predicted_sql": "SELECT ar.Name AS artist,\n       ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_revenue\nFROM Artist ar\nJOIN Album a ON ar.ArtistId = a.ArtistId\nJOIN Track t ON a.AlbumId = t.AlbumId\nJOIN InvoiceLine il ON t.TrackId = il.TrackId\nGROUP BY ar.ArtistId, ar.Name\nORDER BY total_revenue DESC\nLIMIT 20",
+        "raw_output": "SELECT ar.Name AS artist,\n       ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_revenue\nFROM Artist ar\nJOIN Album a ON ar.ArtistId = a.ArtistId\nJOIN Track t ON a.AlbumId = t.AlbumId\nJOIN InvoiceLine il ON t.TrackId = il.TrackId\nGROUP BY ar.ArtistId, ar.Name\nORDER BY total_revenue DESC\nLIMIT 20;",
+        "score": 1.0,
+        "reason": "Full value overlap",
+        "latency": 1.9972400665283203
+      },
+      {
+        "case_id": "join_02",
+        "category": "multi_hop_join",
+        "difficulty": "hard",
+        "natural_language": "Show the management hierarchy: each employee and who they report to",
+        "ground_truth_sql": "SELECT e.FirstName || ' ' || e.LastName AS employee, e.Title AS employee_title, COALESCE(m.FirstName || ' ' || m.LastName, 'No Manager') AS manager, COALESCE(m.Title, 'N/A') AS manager_title FROM Employee e LEFT JOIN Employee m ON e.ReportsTo = m.EmployeeId ORDER BY e.EmployeeId;",
+        "predicted_sql": "-- Show each employee with their manager's name\nSELECT e1.EmployeeId,\n       e1.FirstName || ' ' || e1.LastName AS employee_name,\n       e1.Title AS employee_title,\n       e2.FirstName || ' ' || e2.LastName AS reports_to_name,\n       e2.Title AS reports_to_title\nFROM Employee e1\nLEFT JOIN Employee e2 ON e1.ReportsTo = e2.EmployeeId\nORDER BY e1.EmployeeId\nLIMIT 20",
+        "raw_output": "-- Show each employee with their manager's name\nSELECT e1.EmployeeId,\n       e1.FirstName || ' ' || e1.LastName AS employee_name,\n       e1.Title AS employee_title,\n       e2.FirstName || ' ' || e2.LastName AS reports_to_name,\n       e2.Title AS reports_to_title\nFROM Employee e1\nLEFT JOIN Employee e2 ON e1.ReportsTo = e2.EmployeeId\nORDER BY e1.EmployeeId\nLIMIT 20;",
+        "score": 0.875,
+        "reason": "Partial match: 87.5% overlap",
+        "latency": 1.970108985900879
+      },
+      {
+        "case_id": "join_03",
+        "category": "multi_hop_join",
+        "difficulty": "hard",
+        "natural_language": "Which playlists contain tracks by Led Zeppelin?",
+        "ground_truth_sql": "SELECT DISTINCT p.Name AS playlist_name FROM Playlist p JOIN PlaylistTrack pt ON p.PlaylistId = pt.PlaylistId JOIN Track t ON pt.TrackId = t.TrackId JOIN Album a ON t.AlbumId = a.AlbumId JOIN Artist ar ON a.ArtistId = ar.ArtistId WHERE ar.Name = 'Led Zeppelin' ORDER BY p.Name;",
+        "predicted_sql": "SELECT DISTINCT p.Name AS playlist_name\nFROM Playlist p\nJOIN PlaylistTrack pt ON p.PlaylistId = pt.PlaylistId\nJOIN Track t ON pt.TrackId = t.TrackId\nJOIN Album a ON t.AlbumId = a.AlbumId\nJOIN Artist ar ON a.ArtistId = ar.ArtistId\nWHERE ar.Name LIKE '%Led Zeppelin%'",
+        "raw_output": "SELECT DISTINCT p.Name AS playlist_name\nFROM Playlist p\nJOIN PlaylistTrack pt ON p.PlaylistId = pt.PlaylistId\nJOIN Track t ON pt.TrackId = t.TrackId\nJOIN Album a ON t.AlbumId = a.AlbumId\nJOIN Artist ar ON a.ArtistId = ar.ArtistId\nWHERE ar.Name LIKE '%Led Zeppelin%';",
+        "score": 1.0,
+        "reason": "Exact match",
+        "latency": 1.7512080669403076
+      },
+      {
+        "case_id": "join_04",
+        "category": "multi_hop_join",
+        "difficulty": "hard",
+        "natural_language": "List each customer with the total number of tracks they have purchased",
+        "ground_truth_sql": "SELECT c.FirstName || ' ' || c.LastName AS customer, COUNT(il.InvoiceLineId) AS tracks_purchased FROM Customer c JOIN Invoice i ON c.CustomerId = i.CustomerId JOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId GROUP BY c.CustomerId ORDER BY tracks_purchased DESC LIMIT 15;",
+        "predicted_sql": "SELECT c.CustomerId, c.FirstName, c.LastName, c.Email,\n       COUNT(il.TrackId) AS total_tracks_purchased\nFROM Customer c\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nJOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId\nGROUP BY c.CustomerId, c.FirstName, c.LastName, c.Email\nORDER BY total_tracks_purchased DESC\nLIMIT 20",
+        "raw_output": "SELECT c.CustomerId, c.FirstName, c.LastName, c.Email,\n       COUNT(il.TrackId) AS total_tracks_purchased\nFROM Customer c\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nJOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId\nGROUP BY c.CustomerId, c.FirstName, c.LastName, c.Email\nORDER BY total_tracks_purchased DESC\nLIMIT 20;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 1.7770359516143799
+      },
+      {
+        "case_id": "join_05",
+        "category": "multi_hop_join",
+        "difficulty": "hard",
+        "natural_language": "Which customers are handled by employees who were hired before 2003?",
+        "ground_truth_sql": "SELECT c.FirstName || ' ' || c.LastName AS customer, c.Country, e.FirstName || ' ' || e.LastName AS support_rep, e.HireDate FROM Customer c JOIN Employee e ON c.SupportRepId = e.EmployeeId WHERE e.HireDate < '2003-01-01' ORDER BY c.LastName;",
+        "predicted_sql": "SELECT DISTINCT c.CustomerId, c.FirstName, c.LastName, c.Email\nFROM Customer c\nJOIN Employee e ON c.SupportRepId = e.EmployeeId\nWHERE e.HireDate < '2003-01-01'\nORDER BY c.LastName, c.FirstName",
+        "raw_output": "SELECT DISTINCT c.CustomerId, c.FirstName, c.LastName, c.Email\nFROM Customer c\nJOIN Employee e ON c.SupportRepId = e.EmployeeId\nWHERE e.HireDate < '2003-01-01'\nORDER BY c.LastName, c.FirstName;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 1.449186086654663
+      },
+      {
+        "case_id": "agg_01",
+        "category": "advanced_aggregation",
+        "difficulty": "hard",
+        "natural_language": "Which genres have generated more revenue than the average genre?",
+        "ground_truth_sql": "SELECT g.Name AS genre, ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS revenue FROM Genre g JOIN Track t ON g.GenreId = t.GenreId JOIN InvoiceLine il ON t.TrackId = il.TrackId GROUP BY g.GenreId, g.Name HAVING SUM(il.UnitPrice * il.Quantity) > (SELECT AVG(genre_rev) FROM (SELECT SUM(il2.UnitPrice * il2.Quantity) AS genre_rev FROM Genre g2 JOIN Track t2 ON g2.GenreId = t2.GenreId JOIN InvoiceLine il2 ON t2.TrackId = il2.TrackId GROUP BY g2.GenreId)) ORDER BY revenue DESC;",
+        "predicted_sql": "SELECT g.Name AS genre, ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_revenue\nFROM Genre g\nJOIN Track t ON g.GenreId = t.GenreId\nJOIN InvoiceLine il ON t.TrackId = il.TrackId\nGROUP BY g.GenreId, g.Name\nHAVING SUM(il.UnitPrice * il.Quantity) > (\n    SELECT AVG(genre_total)\n    FROM (\n        SELECT SUM(il2.UnitPrice * il2.Quantity) AS genre_total\n        FROM InvoiceLine il2\n        JOIN Track t2 ON il2.TrackId = t2.TrackId\n        GROUP BY t2.GenreId\n    )\n)\nORDER BY total_revenue DESC",
+        "raw_output": "SELECT g.Name AS genre, ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_revenue\nFROM Genre g\nJOIN Track t ON g.GenreId = t.GenreId\nJOIN InvoiceLine il ON t.TrackId = il.TrackId\nGROUP BY g.GenreId, g.Name\nHAVING SUM(il.UnitPrice * il.Quantity) > (\n    SELECT AVG(genre_total)\n    FROM (\n        SELECT SUM(il2.UnitPrice * il2.Quantity) AS genre_total\n        FROM InvoiceLine il2\n        JOIN Track t2 ON il2.TrackId = t2.TrackId\n        GROUP BY t2.GenreId\n    )\n)\nORDER BY total_revenue DESC;",
+        "score": 1.0,
+        "reason": "Exact match",
+        "latency": 2.7151119709014893
+      },
+      {
+        "case_id": "agg_02",
+        "category": "advanced_aggregation",
+        "difficulty": "hard",
+        "natural_language": "For each support representative, how many customers do they handle and what is the total revenue from those customers?",
+        "ground_truth_sql": "SELECT e.FirstName || ' ' || e.LastName AS support_rep, COUNT(DISTINCT c.CustomerId) AS customer_count, ROUND(SUM(i.Total), 2) AS total_revenue FROM Employee e JOIN Customer c ON e.EmployeeId = c.SupportRepId JOIN Invoice i ON c.CustomerId = i.CustomerId GROUP BY e.EmployeeId ORDER BY total_revenue DESC;",
+        "predicted_sql": "SELECT \n    e.EmployeeId,\n    e.FirstName || ' ' || e.LastName AS support_rep_name,\n    COUNT(DISTINCT c.CustomerId) AS customer_count,\n    ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_revenue\nFROM Employee e\nJOIN Customer c ON e.EmployeeId = c.SupportRepId\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nJOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId\nGROUP BY e.EmployeeId, e.FirstName, e.LastName\nORDER BY total_revenue DESC",
+        "raw_output": "SELECT \n    e.EmployeeId,\n    e.FirstName || ' ' || e.LastName AS support_rep_name,\n    COUNT(DISTINCT c.CustomerId) AS customer_count,\n    ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_revenue\nFROM Employee e\nJOIN Customer c ON e.EmployeeId = c.SupportRepId\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nJOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId\nGROUP BY e.EmployeeId, e.FirstName, e.LastName\nORDER BY total_revenue DESC;",
+        "score": 1.0,
+        "reason": "Subset match (model returned extra columns)",
+        "latency": 2.3581409454345703
+      },
+      {
+        "case_id": "agg_03",
+        "category": "advanced_aggregation",
+        "difficulty": "hard",
+        "natural_language": "What percentage of total revenue does each country contribute?",
+        "ground_truth_sql": "SELECT BillingCountry AS country, ROUND(SUM(Total), 2) AS country_revenue, ROUND(SUM(Total) * 100.0 / (SELECT SUM(Total) FROM Invoice), 2) AS revenue_percentage FROM Invoice GROUP BY BillingCountry ORDER BY country_revenue DESC;",
+        "predicted_sql": "SELECT\n    c.Country,\n    ROUND(SUM(il.UnitPrice * il.Quantity) * 100.0 / (SELECT SUM(il2.UnitPrice * il2.Quantity) FROM InvoiceLine il2), 2) AS revenue_percentage\nFROM Customer c\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nJOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId\nGROUP BY c.Country\nORDER BY revenue_percentage DESC",
+        "raw_output": "SELECT\n    c.Country,\n    ROUND(SUM(il.UnitPrice * il.Quantity) * 100.0 / (SELECT SUM(il2.UnitPrice * il2.Quantity) FROM InvoiceLine il2), 2) AS revenue_percentage\nFROM Customer c\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nJOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId\nGROUP BY c.Country\nORDER BY revenue_percentage DESC;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 2.1035091876983643
+      },
+      {
+        "case_id": "agg_04",
+        "category": "advanced_aggregation",
+        "difficulty": "medium",
+        "natural_language": "How many albums does each artist have, but only show artists with more than 2 albums?",
+        "ground_truth_sql": "SELECT ar.Name AS artist, COUNT(a.AlbumId) AS album_count FROM Artist ar JOIN Album a ON ar.ArtistId = a.ArtistId GROUP BY ar.ArtistId, ar.Name HAVING COUNT(a.AlbumId) > 2 ORDER BY album_count DESC;",
+        "predicted_sql": "SELECT ar.Name AS artist, COUNT(a.AlbumId) AS album_count\nFROM Artist ar\nJOIN Album a ON ar.ArtistId = a.ArtistId\nGROUP BY ar.ArtistId, ar.Name\nHAVING COUNT(a.AlbumId) > 2\nORDER BY album_count DESC",
+        "raw_output": "SELECT ar.Name AS artist, COUNT(a.AlbumId) AS album_count\nFROM Artist ar\nJOIN Album a ON ar.ArtistId = a.ArtistId\nGROUP BY ar.ArtistId, ar.Name\nHAVING COUNT(a.AlbumId) > 2\nORDER BY album_count DESC;",
+        "score": 1.0,
+        "reason": "Exact match",
+        "latency": 1.4000310897827148
+      },
+      {
+        "case_id": "agg_05",
+        "category": "advanced_aggregation",
+        "difficulty": "hard",
+        "natural_language": "What is the average number of tracks per album?",
+        "ground_truth_sql": "SELECT ROUND(AVG(track_count), 2) AS avg_tracks_per_album FROM (SELECT AlbumId, COUNT(*) AS track_count FROM Track GROUP BY AlbumId);",
+        "predicted_sql": "SELECT AVG(track_count) AS avg_tracks_per_album\nFROM (\n    SELECT AlbumId, COUNT(*) AS track_count\n    FROM Track\n    GROUP BY AlbumId\n)",
+        "raw_output": "SELECT AVG(track_count) AS avg_tracks_per_album\nFROM (\n    SELECT AlbumId, COUNT(*) AS track_count\n    FROM Track\n    GROUP BY AlbumId\n);",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 1.277371883392334
+      },
+      {
+        "case_id": "advanced_01",
+        "category": "advanced_sql",
+        "difficulty": "hard",
+        "natural_language": "Which customers have spent more than the average customer?",
+        "ground_truth_sql": "SELECT c.FirstName || ' ' || c.LastName AS customer, ROUND(SUM(i.Total), 2) AS total_spent FROM Customer c JOIN Invoice i ON c.CustomerId = i.CustomerId GROUP BY c.CustomerId HAVING SUM(i.Total) > (SELECT AVG(customer_total) FROM (SELECT SUM(Total) AS customer_total FROM Invoice GROUP BY CustomerId)) ORDER BY total_spent DESC;",
+        "predicted_sql": "-- Customers who have spent more than the average total spent by all customers.\nSELECT c.CustomerId, c.FirstName, c.LastName, ROUND(SUM(i.Total), 2) AS total_spent\nFROM Customer c\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nGROUP BY c.CustomerId, c.FirstName, c.LastName\nHAVING SUM(i.Total) > (SELECT AVG(customer_total) FROM (SELECT SUM(Total) AS customer_total FROM Invoice GROUP BY CustomerId))\nORDER BY total_spent DESC\nLIMIT 20",
+        "raw_output": "-- Customers who have spent more than the average total spent by all customers.\nSELECT c.CustomerId, c.FirstName, c.LastName, ROUND(SUM(i.Total), 2) AS total_spent\nFROM Customer c\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nGROUP BY c.CustomerId, c.FirstName, c.LastName\nHAVING SUM(i.Total) > (SELECT AVG(customer_total) FROM (SELECT SUM(Total) AS customer_total FROM Invoice GROUP BY CustomerId))\nORDER BY total_spent DESC\nLIMIT 20;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 2.3575379848480225
+      },
+      {
+        "case_id": "advanced_02",
+        "category": "advanced_sql",
+        "difficulty": "hard",
+        "natural_language": "Rank the top 3 selling genres in each country",
+        "ground_truth_sql": "SELECT country, genre, tracks_sold, genre_rank FROM (SELECT i.BillingCountry AS country, g.Name AS genre, COUNT(il.InvoiceLineId) AS tracks_sold, ROW_NUMBER() OVER (PARTITION BY i.BillingCountry ORDER BY COUNT(il.InvoiceLineId) DESC) AS genre_rank FROM Invoice i JOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId JOIN Track t ON il.TrackId = t.TrackId JOIN Genre g ON t.GenreId = g.GenreId GROUP BY i.BillingCountry, g.GenreId, g.Name) WHERE genre_rank <= 3 ORDER BY country, genre_rank;",
+        "predicted_sql": "WITH country_genre_sales AS (\n    SELECT\n        i.BillingCountry AS country,\n        g.Name AS genre,\n        ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_sales\n    FROM Invoice i\n    JOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId\n    JOIN Track t ON il.TrackId = t.TrackId\n    JOIN Genre g ON t.GenreId = g.GenreId\n    GROUP BY i.BillingCountry, g.Name\n),\nranked AS (\n    SELECT\n        country,\n        genre,\n        total_sales,\n        ROW_NUMBER() OVER (PARTITION BY country ORDER BY total_sales DESC) AS rn\n    FROM country_genre_sales\n)\nSELECT country, genre, total_sales\nFROM ranked\nWHERE rn <= 3\nORDER BY country, rn\nLIMIT 60",
+        "raw_output": "WITH country_genre_sales AS (\n    SELECT\n        i.BillingCountry AS country,\n        g.Name AS genre,\n        ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_sales\n    FROM Invoice i\n    JOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId\n    JOIN Track t ON il.TrackId = t.TrackId\n    JOIN Genre g ON t.GenreId = g.GenreId\n    GROUP BY i.BillingCountry, g.Name\n),\nranked AS (\n    SELECT\n        country,\n        genre,\n        total_sales,\n        ROW_NUMBER() OVER (PARTITION BY country ORDER BY total_sales DESC) AS rn\n    FROM country_genre_sales\n)\nSELECT country, genre, total_sales\nFROM ranked\nWHERE rn <= 3\nORDER BY country, rn\nLIMIT 60;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 3.0529961585998535
+      },
+      {
+        "case_id": "advanced_03",
+        "category": "advanced_sql",
+        "difficulty": "hard",
+        "natural_language": "Which genres have never been sold to any customer?",
+        "ground_truth_sql": "SELECT g.Name AS genre FROM Genre g WHERE g.GenreId NOT IN (SELECT DISTINCT t.GenreId FROM Track t JOIN InvoiceLine il ON t.TrackId = il.TrackId WHERE t.GenreId IS NOT NULL) ORDER BY g.Name;",
+        "predicted_sql": "SELECT g.Name AS genre\nFROM Genre g\nLEFT JOIN Track t ON g.GenreId = t.GenreId\nLEFT JOIN InvoiceLine il ON t.TrackId = il.TrackId\nWHERE il.InvoiceLineId IS NULL\nGROUP BY g.GenreId, g.Name",
+        "raw_output": "SELECT g.Name AS genre\nFROM Genre g\nLEFT JOIN Track t ON g.GenreId = t.GenreId\nLEFT JOIN InvoiceLine il ON t.TrackId = il.TrackId\nWHERE il.InvoiceLineId IS NULL\nGROUP BY g.GenreId, g.Name;",
+        "score": 1.0,
+        "reason": "Full value overlap",
+        "latency": 1.525933027267456
+      },
+      {
+        "case_id": "advanced_04",
+        "category": "advanced_sql",
+        "difficulty": "hard",
+        "natural_language": "Find customers who have made purchases in every year that has invoice data",
+        "ground_truth_sql": "SELECT c.FirstName || ' ' || c.LastName AS customer FROM Customer c JOIN Invoice i ON c.CustomerId = i.CustomerId GROUP BY c.CustomerId HAVING COUNT(DISTINCT STRFTIME('%Y', i.InvoiceDate)) = (SELECT COUNT(DISTINCT STRFTIME('%Y', InvoiceDate)) FROM Invoice) ORDER BY customer;",
+        "predicted_sql": "SELECT \n    c.CustomerId,\n    c.FirstName,\n    c.LastName,\n    COUNT(DISTINCT strftime('%Y', i.InvoiceDate)) AS years_with_purchases,\n    (SELECT COUNT(DISTINCT strftime('%Y', InvoiceDate)) FROM Invoice) AS total_years\nFROM Customer c\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nGROUP BY c.CustomerId, c.FirstName, c.LastName\nHAVING COUNT(DISTINCT strftime('%Y', i.InvoiceDate)) = (SELECT COUNT(DISTINCT strftime('%Y', InvoiceDate)) FROM Invoice)\nORDER BY c.LastName, c.FirstName",
+        "raw_output": "SELECT \n    c.CustomerId,\n    c.FirstName,\n    c.LastName,\n    COUNT(DISTINCT strftime('%Y', i.InvoiceDate)) AS years_with_purchases,\n    (SELECT COUNT(DISTINCT strftime('%Y', InvoiceDate)) FROM Invoice) AS total_years\nFROM Customer c\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nGROUP BY c.CustomerId, c.FirstName, c.LastName\nHAVING COUNT(DISTINCT strftime('%Y', i.InvoiceDate)) = (SELECT COUNT(DISTINCT strftime('%Y', InvoiceDate)) FROM Invoice)\nORDER BY c.LastName, c.FirstName;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 2.579029083251953
+      },
+      {
+        "case_id": "advanced_05",
+        "category": "advanced_sql",
+        "difficulty": "hard",
+        "natural_language": "Show each customer's most recent invoice date and the total amount of that invoice",
+        "ground_truth_sql": "SELECT c.FirstName || ' ' || c.LastName AS customer, i.InvoiceDate AS most_recent_date, i.Total AS invoice_total FROM Customer c JOIN Invoice i ON c.CustomerId = i.CustomerId WHERE i.InvoiceDate = (SELECT MAX(i2.InvoiceDate) FROM Invoice i2 WHERE i2.CustomerId = c.CustomerId) ORDER BY most_recent_date DESC LIMIT 15;",
+        "predicted_sql": "SELECT\n    c.CustomerId,\n    c.FirstName,\n    c.LastName,\n    latest.InvoiceDate AS most_recent_invoice_date,\n    latest.Total AS invoice_total\nFROM Customer c\nJOIN (\n    SELECT CustomerId, InvoiceDate, Total,\n           ROW_NUMBER() OVER (PARTITION BY CustomerId ORDER BY InvoiceDate DESC) AS rn\n    FROM Invoice\n) latest ON c.CustomerId = latest.CustomerId AND latest.rn = 1\nORDER BY c.LastName, c.FirstName\nLIMIT 20",
+        "raw_output": "SELECT\n    c.CustomerId,\n    c.FirstName,\n    c.LastName,\n    latest.InvoiceDate AS most_recent_invoice_date,\n    latest.Total AS invoice_total\nFROM Customer c\nJOIN (\n    SELECT CustomerId, InvoiceDate, Total,\n           ROW_NUMBER() OVER (PARTITION BY CustomerId ORDER BY InvoiceDate DESC) AS rn\n    FROM Invoice\n) latest ON c.CustomerId = latest.CustomerId AND latest.rn = 1\nORDER BY c.LastName, c.FirstName\nLIMIT 20;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 2.345136880874634
+      },
+      {
+        "case_id": "messy_01",
+        "category": "messy_adversarial",
+        "difficulty": "hard",
+        "natural_language": "shwo me the top sellin artsts and how much there albums made",
+        "ground_truth_sql": "SELECT ar.Name AS artist, COUNT(DISTINCT a.AlbumId) AS album_count, ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_revenue FROM Artist ar JOIN Album a ON ar.ArtistId = a.ArtistId JOIN Track t ON a.AlbumId = t.AlbumId JOIN InvoiceLine il ON t.TrackId = il.TrackId GROUP BY ar.ArtistId, ar.Name ORDER BY total_revenue DESC LIMIT 10;",
+        "predicted_sql": "-- Interpreting \"top selling artists\" as highest total revenue from track sales, and \"how much their albums made\" as revenue per album for those artists.\nWITH artist_revenue AS (\n    SELECT ar.ArtistId, ar.Name AS artist,\n           ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_revenue\n    FROM Artist ar\n    JOIN Album a ON ar.ArtistId = a.ArtistId\n    JOIN Track t ON a.AlbumId = t.AlbumId\n    JOIN InvoiceLine il ON t.TrackId = il.TrackId\n    GROUP BY ar.ArtistId, ar.Name\n    ORDER BY total_revenue DESC\n    LIMIT 10\n)\nSELECT ar.artist, a.Title AS album,\n       ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS album_revenue\nFROM artist_revenue ar\nJOIN Album a ON ar.ArtistId = a.ArtistId\nJOIN Track t ON a.AlbumId = t.AlbumId\nJOIN InvoiceLine il ON t.TrackId = il.TrackId\nGROUP BY ar.artist, a.AlbumId, a.Title\nORDER BY ar.total_revenue DESC, album_revenue DESC\nLIMIT 20",
+        "raw_output": "-- Interpreting \"top selling artists\" as highest total revenue from track sales, and \"how much their albums made\" as revenue per album for those artists.\nWITH artist_revenue AS (\n    SELECT ar.ArtistId, ar.Name AS artist,\n           ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_revenue\n    FROM Artist ar\n    JOIN Album a ON ar.ArtistId = a.ArtistId\n    JOIN Track t ON a.AlbumId = t.AlbumId\n    JOIN InvoiceLine il ON t.TrackId = il.TrackId\n    GROUP BY ar.ArtistId, ar.Name\n    ORDER BY total_revenue DESC\n    LIMIT 10\n)\nSELECT ar.artist, a.Title AS album,\n       ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS album_revenue\nFROM artist_revenue ar\nJOIN Album a ON ar.ArtistId = a.ArtistId\nJOIN Track t ON a.AlbumId = t.AlbumId\nJOIN InvoiceLine il ON t.TrackId = il.TrackId\nGROUP BY ar.artist, a.AlbumId, a.Title\nORDER BY ar.total_revenue DESC, album_revenue DESC\nLIMIT 20;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 4.2805328369140625
+      },
+      {
+        "case_id": "messy_02",
+        "category": "messy_adversarial",
+        "difficulty": "hard",
+        "natural_language": "trakcs that nobdy has purchsed",
+        "ground_truth_sql": "SELECT t.Name AS track_name, ar.Name AS artist, g.Name AS genre FROM Track t JOIN Album a ON t.AlbumId = a.AlbumId JOIN Artist ar ON a.ArtistId = ar.ArtistId LEFT JOIN Genre g ON t.GenreId = g.GenreId WHERE t.TrackId NOT IN (SELECT DISTINCT TrackId FROM InvoiceLine) ORDER BY ar.Name, t.Name LIMIT 20;",
+        "predicted_sql": "-- Note: The database does not track purchase history directly. However, we can find tracks that never appear in any invoice line (i.e., have never been sold).\nSELECT t.TrackId, t.Name AS track, a.Title AS album, ar.Name AS artist\nFROM Track t\nLEFT JOIN InvoiceLine il ON t.TrackId = il.TrackId\nJOIN Album a ON t.AlbumId = a.AlbumId\nJOIN Artist ar ON a.ArtistId = ar.ArtistId\nWHERE il.TrackId IS NULL\nORDER BY t.Name\nLIMIT 20",
+        "raw_output": "-- Note: The database does not track purchase history directly. However, we can find tracks that never appear in any invoice line (i.e., have never been sold).\nSELECT t.TrackId, t.Name AS track, a.Title AS album, ar.Name AS artist\nFROM Track t\nLEFT JOIN InvoiceLine il ON t.TrackId = il.TrackId\nJOIN Album a ON t.AlbumId = a.AlbumId\nJOIN Artist ar ON a.ArtistId = ar.ArtistId\nWHERE il.TrackId IS NULL\nORDER BY t.Name\nLIMIT 20;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 2.1356968879699707
+      },
+      {
+        "case_id": "messy_03",
+        "category": "messy_adversarial",
+        "difficulty": "hard",
+        "natural_language": "gimme all rock n metal songs with there lenghts in minuts",
+        "ground_truth_sql": "SELECT t.Name AS track_name, g.Name AS genre, ar.Name AS artist, ROUND(t.Milliseconds / 60000.0, 2) AS duration_minutes FROM Track t JOIN Genre g ON t.GenreId = g.GenreId JOIN Album a ON t.AlbumId = a.AlbumId JOIN Artist ar ON a.ArtistId = ar.ArtistId WHERE g.Name IN ('Rock', 'Metal') ORDER BY g.Name, t.Name LIMIT 20;",
+        "predicted_sql": "SELECT \n    g.Name AS genre,\n    t.Name AS track_name,\n    ROUND(t.Milliseconds / 60000.0, 2) AS duration_minutes\nFROM Track t\nJOIN Genre g ON t.GenreId = g.GenreId\nWHERE g.Name IN ('Rock', 'Metal')\nORDER BY g.Name, t.Name\nLIMIT 20",
+        "raw_output": "SELECT \n    g.Name AS genre,\n    t.Name AS track_name,\n    ROUND(t.Milliseconds / 60000.0, 2) AS duration_minutes\nFROM Track t\nJOIN Genre g ON t.GenreId = g.GenreId\nWHERE g.Name IN ('Rock', 'Metal')\nORDER BY g.Name, t.Name\nLIMIT 20;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 1.6278331279754639
+      },
+      {
+        "case_id": "messy_04",
+        "category": "messy_adversarial",
+        "difficulty": "hard",
+        "natural_language": "employes who dont manege anyone",
+        "ground_truth_sql": "SELECT e.FirstName || ' ' || e.LastName AS employee, e.Title FROM Employee e WHERE e.EmployeeId NOT IN (SELECT DISTINCT ReportsTo FROM Employee WHERE ReportsTo IS NOT NULL) ORDER BY e.LastName;",
+        "predicted_sql": "SELECT e.FirstName, e.LastName, e.Title\nFROM Employee e\nWHERE e.EmployeeId NOT IN (\n    SELECT DISTINCT ReportsTo FROM Employee WHERE ReportsTo IS NOT NULL\n)\nORDER BY e.LastName, e.FirstName",
+        "raw_output": "SELECT e.FirstName, e.LastName, e.Title\nFROM Employee e\nWHERE e.EmployeeId NOT IN (\n    SELECT DISTINCT ReportsTo FROM Employee WHERE ReportsTo IS NOT NULL\n)\nORDER BY e.LastName, e.FirstName;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 1.3219001293182373
+      },
+      {
+        "case_id": "messy_05",
+        "category": "messy_adversarial",
+        "difficulty": "medium",
+        "natural_language": "avg invioce amnt per counrty sortd high to low",
+        "ground_truth_sql": "SELECT BillingCountry AS country, ROUND(AVG(Total), 2) AS avg_invoice FROM Invoice GROUP BY BillingCountry ORDER BY avg_invoice DESC;",
+        "predicted_sql": "-- Interpreting: Average invoice amount per country, sorted from highest to lowest\nSELECT i.BillingCountry AS country,\n       ROUND(AVG(i.Total), 2) AS avg_invoice_amount\nFROM Invoice i\nGROUP BY i.BillingCountry\nORDER BY avg_invoice_amount DESC",
+        "raw_output": "-- Interpreting: Average invoice amount per country, sorted from highest to lowest\nSELECT i.BillingCountry AS country,\n       ROUND(AVG(i.Total), 2) AS avg_invoice_amount\nFROM Invoice i\nGROUP BY i.BillingCountry\nORDER BY avg_invoice_amount DESC;",
+        "score": 1.0,
+        "reason": "Exact match",
+        "latency": 1.7385952472686768
+      },
+      {
+        "case_id": "non_eng_01",
+        "category": "non_english_complex",
+        "difficulty": "hard",
+        "natural_language": "哪些藝人的專輯數量超過三張？列出藝人名稱和專輯數",
+        "ground_truth_sql": "SELECT ar.Name AS artist, COUNT(a.AlbumId) AS album_count FROM Artist ar JOIN Album a ON ar.ArtistId = a.ArtistId GROUP BY ar.ArtistId, ar.Name HAVING COUNT(a.AlbumId) > 3 ORDER BY album_count DESC;",
+        "predicted_sql": "SELECT ar.Name AS artist, COUNT(a.AlbumId) AS album_count\nFROM Artist ar\nJOIN Album a ON ar.ArtistId = a.ArtistId\nGROUP BY ar.ArtistId, ar.Name\nHAVING COUNT(a.AlbumId) > 3\nORDER BY album_count DESC",
+        "raw_output": "SELECT ar.Name AS artist, COUNT(a.AlbumId) AS album_count\nFROM Artist ar\nJOIN Album a ON ar.ArtistId = a.ArtistId\nGROUP BY ar.ArtistId, ar.Name\nHAVING COUNT(a.AlbumId) > 3\nORDER BY album_count DESC;",
+        "score": 1.0,
+        "reason": "Exact match",
+        "latency": 1.4259278774261475
+      },
+      {
+        "case_id": "non_eng_02",
+        "category": "non_english_complex",
+        "difficulty": "hard",
+        "natural_language": "各ジャンルの売上金額トップ5を国別に表示してください",
+        "ground_truth_sql": "SELECT g.Name AS genre, ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_sales FROM Genre g JOIN Track t ON g.GenreId = t.GenreId JOIN InvoiceLine il ON t.TrackId = il.TrackId GROUP BY g.GenreId, g.Name ORDER BY total_sales DESC LIMIT 5;",
+        "predicted_sql": "-- Note: \"Sales amount by genre per country\" requires joining Invoice (for country), InvoiceLine, Track, and Genre.\n-- We interpret \"sales amount\" as SUM(UnitPrice * Quantity) from InvoiceLine.\nSELECT c.Country,\n       g.Name AS genre,\n       ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_sales\nFROM Invoice i\nJOIN Customer c ON i.CustomerId = c.CustomerId\nJOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId\nJOIN Track t ON il.TrackId = t.TrackId\nJOIN Genre g ON t.GenreId = g.GenreId\nGROUP BY c.Country, g.GenreId, g.Name\nORDER BY c.Country, total_sales DESC\nLIMIT 20",
+        "raw_output": "-- Note: \"Sales amount by genre per country\" requires joining Invoice (for country), InvoiceLine, Track, and Genre.\n-- We interpret \"sales amount\" as SUM(UnitPrice * Quantity) from InvoiceLine.\nSELECT c.Country,\n       g.Name AS genre,\n       ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_sales\nFROM Invoice i\nJOIN Customer c ON i.CustomerId = c.CustomerId\nJOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId\nJOIN Track t ON il.TrackId = t.TrackId\nJOIN Genre g ON t.GenreId = g.GenreId\nGROUP BY c.Country, g.GenreId, g.Name\nORDER BY c.Country, total_sales DESC\nLIMIT 20;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 3.1058807373046875
+      },
+      {
+        "case_id": "non_eng_03",
+        "category": "non_english_complex",
+        "difficulty": "hard",
+        "natural_language": "Welche Kunden haben insgesamt mehr als 45 Dollar ausgegeben?",
+        "ground_truth_sql": "SELECT c.FirstName || ' ' || c.LastName AS customer, ROUND(SUM(i.Total), 2) AS total_spent FROM Customer c JOIN Invoice i ON c.CustomerId = i.CustomerId GROUP BY c.CustomerId HAVING SUM(i.Total) > 45 ORDER BY total_spent DESC;",
+        "predicted_sql": "SELECT c.CustomerId, c.FirstName, c.LastName, c.Email, ROUND(SUM(i.Total), 2) AS total_spent\nFROM Customer c\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nGROUP BY c.CustomerId, c.FirstName, c.LastName, c.Email\nHAVING SUM(i.Total) > 45\nORDER BY total_spent DESC\nLIMIT 20",
+        "raw_output": "SELECT c.CustomerId, c.FirstName, c.LastName, c.Email, ROUND(SUM(i.Total), 2) AS total_spent\nFROM Customer c\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nGROUP BY c.CustomerId, c.FirstName, c.LastName, c.Email\nHAVING SUM(i.Total) > 45\nORDER BY total_spent DESC\nLIMIT 20;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 1.7665510177612305
+      },
+      {
+        "case_id": "non_eng_04",
+        "category": "non_english_complex",
+        "difficulty": "hard",
+        "natural_language": "找出每位員工負責的客戶中，消費總額最高的客戶是誰",
+        "ground_truth_sql": "SELECT e.FirstName || ' ' || e.LastName AS support_rep, c.FirstName || ' ' || c.LastName AS top_customer, ROUND(customer_spending.total_spent, 2) AS total_spent FROM Employee e JOIN Customer c ON e.EmployeeId = c.SupportRepId JOIN (SELECT CustomerId, SUM(Total) AS total_spent FROM Invoice GROUP BY CustomerId) AS customer_spending ON c.CustomerId = customer_spending.CustomerId WHERE customer_spending.total_spent = (SELECT MAX(cs2.total_spent) FROM Customer c2 JOIN (SELECT CustomerId, SUM(Total) AS total_spent FROM Invoice GROUP BY CustomerId) AS cs2 ON c2.CustomerId = cs2.CustomerId WHERE c2.SupportRepId = e.EmployeeId) ORDER BY e.LastName;",
+        "predicted_sql": "SELECT \n    e.EmployeeId, \n    e.FirstName || ' ' || e.LastName AS employee_name,\n    c.CustomerId, \n    c.FirstName || ' ' || c.LastName AS customer_name,\n    ROUND(SUM(i.Total), 2) AS total_spent\nFROM Employee e\nJOIN Customer c ON e.EmployeeId = c.SupportRepId\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nGROUP BY e.EmployeeId, c.CustomerId\nHAVING ROUND(SUM(i.Total), 2) = (\n    SELECT ROUND(MAX(amount), 2)\n    FROM (\n        SELECT SUM(i2.Total) AS amount\n        FROM Customer c2\n        JOIN Invoice i2 ON c2.CustomerId = i2.CustomerId\n        WHERE c2.SupportRepId = e.EmployeeId\n        GROUP BY c2.CustomerId\n    )\n)\nORDER BY e.EmployeeId",
+        "raw_output": "SELECT \n    e.EmployeeId, \n    e.FirstName || ' ' || e.LastName AS employee_name,\n    c.CustomerId, \n    c.FirstName || ' ' || c.LastName AS customer_name,\n    ROUND(SUM(i.Total), 2) AS total_spent\nFROM Employee e\nJOIN Customer c ON e.EmployeeId = c.SupportRepId\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nGROUP BY e.EmployeeId, c.CustomerId\nHAVING ROUND(SUM(i.Total), 2) = (\n    SELECT ROUND(MAX(amount), 2)\n    FROM (\n        SELECT SUM(i2.Total) AS amount\n        FROM Customer c2\n        JOIN Invoice i2 ON c2.CustomerId = i2.CustomerId\n        WHERE c2.SupportRepId = e.EmployeeId\n        GROUP BY c2.CustomerId\n    )\n)\nORDER BY e.EmployeeId;",
+        "score": 1.0,
+        "reason": "Subset match (model returned extra columns)",
+        "latency": 3.375931978225708
+      },
+      {
+        "case_id": "non_eng_05",
+        "category": "non_english_complex",
+        "difficulty": "hard",
+        "natural_language": "Quels sont les 3 genres les plus vendus en France ?",
+        "ground_truth_sql": "SELECT g.Name AS genre, COUNT(il.InvoiceLineId) AS tracks_sold FROM Genre g JOIN Track t ON g.GenreId = t.GenreId JOIN InvoiceLine il ON t.TrackId = il.TrackId JOIN Invoice i ON il.InvoiceId = i.InvoiceId WHERE i.BillingCountry = 'France' GROUP BY g.GenreId, g.Name ORDER BY tracks_sold DESC LIMIT 3;",
+        "predicted_sql": "SELECT g.Name AS genre, ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_sales\nFROM Invoice i\nJOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId\nJOIN Track t ON il.TrackId = t.TrackId\nJOIN Genre g ON t.GenreId = g.GenreId\nWHERE i.BillingCountry = 'France'\nGROUP BY g.GenreId, g.Name\nORDER BY total_sales DESC\nLIMIT 3",
+        "raw_output": "SELECT g.Name AS genre, ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_sales\nFROM Invoice i\nJOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId\nJOIN Track t ON il.TrackId = t.TrackId\nJOIN Genre g ON t.GenreId = g.GenreId\nWHERE i.BillingCountry = 'France'\nGROUP BY g.GenreId, g.Name\nORDER BY total_sales DESC\nLIMIT 3;",
+        "score": 0.0,
+        "reason": "No match",
+        "latency": 1.9066622257232666
+      }
+    ],
+    "errors": [
+      {
+        "case_id": "filter_01",
+        "category": "tricky_filtering",
+        "question": "Find all tracks that have no composer listed",
+        "predicted_sql": "SELECT TrackId, Name, AlbumId, MediaTypeId, GenreId, Composer, Milliseconds, Bytes, UnitPrice\nFROM Track\nWHERE Composer IS NULL\nORDER BY Name",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "filter_02",
+        "category": "tricky_filtering",
+        "question": "Which customers do not have a company?",
+        "predicted_sql": "SELECT CustomerId, FirstName, LastName, Email, City, Country\nFROM Customer\nWHERE Company IS NULL\nORDER BY LastName, FirstName\nLIMIT 20",
+        "score": 0.40816326530612246,
+        "reason": "Partial match: 40.8% overlap"
+      },
+      {
+        "case_id": "filter_04",
+        "category": "tricky_filtering",
+        "question": "Show tracks that are longer than 10 minutes and cost more than $0.99",
+        "predicted_sql": "SELECT t.TrackId, t.Name, t.Milliseconds / 1000 AS duration_seconds, t.UnitPrice\nFROM Track t\nWHERE t.Milliseconds > 600000\n  AND t.UnitPrice > 0.99\nORDER BY t.Milliseconds DESC\nLIMIT 20",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "join_02",
+        "category": "multi_hop_join",
+        "question": "Show the management hierarchy: each employee and who they report to",
+        "predicted_sql": "-- Show each employee with their manager's name\nSELECT e1.EmployeeId,\n       e1.FirstName || ' ' || e1.LastName AS employee_name,\n       e1.Title AS employee_title,\n       e2.FirstName || ' ' || e2.La",
+        "score": 0.875,
+        "reason": "Partial match: 87.5% overlap"
+      },
+      {
+        "case_id": "join_04",
+        "category": "multi_hop_join",
+        "question": "List each customer with the total number of tracks they have purchased",
+        "predicted_sql": "SELECT c.CustomerId, c.FirstName, c.LastName, c.Email,\n       COUNT(il.TrackId) AS total_tracks_purchased\nFROM Customer c\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nJOIN InvoiceLine il ON i.Invoice",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "join_05",
+        "category": "multi_hop_join",
+        "question": "Which customers are handled by employees who were hired before 2003?",
+        "predicted_sql": "SELECT DISTINCT c.CustomerId, c.FirstName, c.LastName, c.Email\nFROM Customer c\nJOIN Employee e ON c.SupportRepId = e.EmployeeId\nWHERE e.HireDate < '2003-01-01'\nORDER BY c.LastName, c.FirstName",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "agg_03",
+        "category": "advanced_aggregation",
+        "question": "What percentage of total revenue does each country contribute?",
+        "predicted_sql": "SELECT\n    c.Country,\n    ROUND(SUM(il.UnitPrice * il.Quantity) * 100.0 / (SELECT SUM(il2.UnitPrice * il2.Quantity) FROM InvoiceLine il2), 2) AS revenue_percentage\nFROM Customer c\nJOIN Invoice i ON c.",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "agg_05",
+        "category": "advanced_aggregation",
+        "question": "What is the average number of tracks per album?",
+        "predicted_sql": "SELECT AVG(track_count) AS avg_tracks_per_album\nFROM (\n    SELECT AlbumId, COUNT(*) AS track_count\n    FROM Track\n    GROUP BY AlbumId\n)",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "advanced_01",
+        "category": "advanced_sql",
+        "question": "Which customers have spent more than the average customer?",
+        "predicted_sql": "-- Customers who have spent more than the average total spent by all customers.\nSELECT c.CustomerId, c.FirstName, c.LastName, ROUND(SUM(i.Total), 2) AS total_spent\nFROM Customer c\nJOIN Invoice i ON c.",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "advanced_02",
+        "category": "advanced_sql",
+        "question": "Rank the top 3 selling genres in each country",
+        "predicted_sql": "WITH country_genre_sales AS (\n    SELECT\n        i.BillingCountry AS country,\n        g.Name AS genre,\n        ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_sales\n    FROM Invoice i\n    JOIN Invo",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "advanced_04",
+        "category": "advanced_sql",
+        "question": "Find customers who have made purchases in every year that has invoice data",
+        "predicted_sql": "SELECT \n    c.CustomerId,\n    c.FirstName,\n    c.LastName,\n    COUNT(DISTINCT strftime('%Y', i.InvoiceDate)) AS years_with_purchases,\n    (SELECT COUNT(DISTINCT strftime('%Y', InvoiceDate)) FROM Invoi",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "advanced_05",
+        "category": "advanced_sql",
+        "question": "Show each customer's most recent invoice date and the total amount of that invoice",
+        "predicted_sql": "SELECT\n    c.CustomerId,\n    c.FirstName,\n    c.LastName,\n    latest.InvoiceDate AS most_recent_invoice_date,\n    latest.Total AS invoice_total\nFROM Customer c\nJOIN (\n    SELECT CustomerId, InvoiceDat",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "messy_01",
+        "category": "messy_adversarial",
+        "question": "shwo me the top sellin artsts and how much there albums made",
+        "predicted_sql": "-- Interpreting \"top selling artists\" as highest total revenue from track sales, and \"how much their albums made\" as revenue per album for those artists.\nWITH artist_revenue AS (\n    SELECT ar.ArtistI",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "messy_02",
+        "category": "messy_adversarial",
+        "question": "trakcs that nobdy has purchsed",
+        "predicted_sql": "-- Note: The database does not track purchase history directly. However, we can find tracks that never appear in any invoice line (i.e., have never been sold).\nSELECT t.TrackId, t.Name AS track, a.Tit",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "messy_03",
+        "category": "messy_adversarial",
+        "question": "gimme all rock n metal songs with there lenghts in minuts",
+        "predicted_sql": "SELECT \n    g.Name AS genre,\n    t.Name AS track_name,\n    ROUND(t.Milliseconds / 60000.0, 2) AS duration_minutes\nFROM Track t\nJOIN Genre g ON t.GenreId = g.GenreId\nWHERE g.Name IN ('Rock', 'Metal')\nO",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "messy_04",
+        "category": "messy_adversarial",
+        "question": "employes who dont manege anyone",
+        "predicted_sql": "SELECT e.FirstName, e.LastName, e.Title\nFROM Employee e\nWHERE e.EmployeeId NOT IN (\n    SELECT DISTINCT ReportsTo FROM Employee WHERE ReportsTo IS NOT NULL\n)\nORDER BY e.LastName, e.FirstName",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "non_eng_02",
+        "category": "non_english_complex",
+        "question": "各ジャンルの売上金額トップ5を国別に表示してください",
+        "predicted_sql": "-- Note: \"Sales amount by genre per country\" requires joining Invoice (for country), InvoiceLine, Track, and Genre.\n-- We interpret \"sales amount\" as SUM(UnitPrice * Quantity) from InvoiceLine.\nSELECT",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "non_eng_03",
+        "category": "non_english_complex",
+        "question": "Welche Kunden haben insgesamt mehr als 45 Dollar ausgegeben?",
+        "predicted_sql": "SELECT c.CustomerId, c.FirstName, c.LastName, c.Email, ROUND(SUM(i.Total), 2) AS total_spent\nFROM Customer c\nJOIN Invoice i ON c.CustomerId = i.CustomerId\nGROUP BY c.CustomerId, c.FirstName, c.LastNam",
+        "score": 0.0,
+        "reason": "No match"
+      },
+      {
+        "case_id": "non_eng_05",
+        "category": "non_english_complex",
+        "question": "Quels sont les 3 genres les plus vendus en France ?",
+        "predicted_sql": "SELECT g.Name AS genre, ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS total_sales\nFROM Invoice i\nJOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId\nJOIN Track t ON il.TrackId = t.TrackId\nJOIN Genre g ON",
+        "score": 0.0,
+        "reason": "No match"
+      }
+    ]
+  }
+}
