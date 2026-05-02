@@ -27,7 +27,7 @@ The project satisfies the assignment requirements:
 - The result is returned to the user.
 - Ambiguous, conflicting, typo-heavy, non-English, injection, and out-of-scope cases were tested.
 - Critical failures were hardened through a layered architecture.
-- 30 adversarial eval cases have manually written ground-truth SQL.
+- 30 challenging eval cases (including 5 adversarial) have manually written ground-truth SQL.
 - Three models are evaluated: Claude Sonnet 4.6, GPT-4o, and DeepSeek-V3.
 - All three models exceed the required 85% accuracy threshold on the main eval set.
 
